@@ -1,0 +1,76 @@
+/* Global Styles */
+
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f4f5f7;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Button Styles */
+.button {
+  background-color: #0079bf;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.button:hover {
+  background-color: #005a8c;
+}
+
+/* Board and Card Styles */
+.board {
+  background-color: white;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+  padding: 16px;
+}
+
+.card {
+  background-color: #ebecf0;
+  border-radius: 3px;
+  padding: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s;
+}
+
+.card:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Column Styles */
+.column {
+  background-color: #f4f5f7;
+  border-radius: 3px;
+  padding: 8px;
+  margin-right: 16px;
+  flex: 1;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .container {
+    padding: 8px;
+  }
+  .column {
+    margin-right: 0;
+    margin-bottom: 16px;
+  }
+}

@@ -1,0 +1,43 @@
+/* Theme Styles */
+
+:root {
+  --primary-color: #0079bf;
+  --primary-hover-color: #005a8c;
+  --background-color: #f4f5f7;
+  --card-background-color: #ebecf0;
+  --text-color: #333;
+  --border-radius: 3px;
+  --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.button {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: var(--border-radius);
+}
+
+.button:hover {
+  background-color: var(--primary-hover-color);
+}
+
+.board {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-light);
+}
+
+.card {
+  background-color: var(--card-background-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-light);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-hover);
+}

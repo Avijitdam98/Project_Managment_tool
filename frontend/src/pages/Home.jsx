@@ -1,0 +1,395 @@
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { FaClipboardList, FaPlus, FaUser, FaClock, FaBell, FaStar, FaEllipsisH, FaTimes } from 'react-icons/fa';
+import { fetchBoards, createBoard } from '../store/boardSlice';
+import { motion, AnimatePresence } from 'framer-motion';
+import { format } from 'date-fns';
+
+const CreateBoardModal = ({ isOpen, onClose, onSubmit }) => {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({ title, description });
+    setTitle('');
+    setDescription('');
+    onClose();
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Create New Board</h2>
+              <button
+                onClick={onClose}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+                  Board Title
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="Enter board title"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+                  Description
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  placeholder="Enter board description"
+                  rows="3"
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="mr-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Create Board
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const Home = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { boards, loading } = useSelector((state) => state.boards);
+  const { user } = useSelector((state) => state.auth);
+  const [recentBoards, setRecentBoards] = useState([]);
+  const [starredBoards, setStarredBoards] = useState([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchBoards());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (boards) {
+      // Sort boards by updatedAt and get recent ones
+      const sorted = [...boards].sort((a, b) => 
+        new Date(b.updatedAt) - new Date(a.updatedAt)
+      );
+      setRecentBoards(sorted.slice(0, 4));
+      
+      // Get starred boards
+      setStarredBoards(boards.filter(board => board.isStarred));
+    }
+  }, [boards]);
+
+  const handleCreateBoard = async (boardData) => {
+    try {
+      const resultAction = await dispatch(createBoard(boardData));
+      if (createBoard.fulfilled.match(resultAction)) {
+        const newBoard = resultAction.payload;
+        navigate(`/board/${newBoard._id}`);
+      }
+    } catch (error) {
+      console.error('Failed to create board:', error);
+    }
+  };
+
+  // Calculate stats
+  const totalBoards = boards?.length || 0;
+  const activeTasks = boards?.reduce((acc, board) => {
+    return acc + board.columns?.reduce((taskAcc, col) => taskAcc + (col.tasks?.length || 0), 0);
+  }, 0) || 0;
+  const teamMembers = new Set(boards?.flatMap(board => 
+    board.members?.map(member => member._id)
+  )).size || 0;
+  const notifications = user?.notifications?.length || 0;
+
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  const BoardCard = ({ board }) => (
+    <motion.div
+      variants={itemVariants}
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200"
+    >
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center space-x-2">
+            <div 
+              className="w-8 h-8 rounded flex items-center justify-center"
+              style={{ backgroundColor: board.color || '#4F46E5' }}
+            >
+              <FaClipboardList className="text-white" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {board.title}
+            </h3>
+          </div>
+          <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <FaEllipsisH />
+          </button>
+        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          {board.description || 'No description provided'}
+        </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="flex -space-x-2">
+              {board.members?.slice(0, 3).map((member, index) => (
+                <img
+                  key={index}
+                  src={member.avatar || '/default-avatar.png'}
+                  alt={member.name}
+                  className="w-6 h-6 rounded-full border-2 border-white dark:border-gray-800"
+                />
+              ))}
+              {board.members?.length > 3 && (
+                <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs text-gray-600 dark:text-gray-300 border-2 border-white dark:border-gray-800">
+                  +{board.members.length - 3}
+                </div>
+              )}
+            </div>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {format(new Date(board.updatedAt), 'MMM d')}
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {board.columns?.reduce((acc, col) => acc + (col.tasks?.length || 0), 0) || 0} tasks
+            </span>
+          </div>
+        </div>
+      </div>
+      <Link
+        to={`/board/${board._id}`}
+        className="block px-4 py-2 bg-gray-50 dark:bg-gray-700/50 text-sm text-center text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 rounded-b-lg"
+      >
+        Open Board
+      </Link>
+    </motion.div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Welcome Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg shadow-lg mb-8"
+        >
+          <div className="p-6 sm:p-8 md:p-10">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-2 text-white">
+              Welcome back, {user?.name || 'User'}!
+            </h1>
+            <p className="text-blue-100 text-sm sm:text-base mb-6">
+              Manage your projects and collaborate with your team efficiently.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="inline-flex justify-center items-center px-6 py-2.5 border border-transparent text-sm sm:text-base font-medium rounded-lg text-white bg-blue-500 hover:bg-blue-600 transition-colors duration-200"
+              >
+                <FaPlus className="mr-2" />
+                Create New Board
+              </button>
+              <Link
+                to="/boards"
+                className="inline-flex justify-center items-center px-6 py-2.5 border border-transparent text-sm sm:text-base font-medium rounded-lg text-blue-600 bg-white hover:bg-blue-50 transition-colors duration-200"
+              >
+                View All Boards
+              </Link>
+            </div>
+          </div>
+          <div className="absolute bottom-0 right-0 w-32 h-32 md:w-48 md:h-48 opacity-10">
+            <FaClipboardList className="w-full h-full" />
+          </div>
+        </motion.div>
+
+        {/* Quick Stats */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+        >
+          <motion.div
+            variants={itemVariants}
+            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total Boards</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{totalBoards}</h3>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <FaClipboardList className="text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Active Tasks</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{activeTasks}</h3>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <FaClock className="text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Team Members</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{teamMembers}</h3>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                <FaUser className="text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            variants={itemVariants}
+            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Notifications</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{notifications}</h3>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                <FaBell className="text-yellow-600 dark:text-yellow-400" />
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Recent Boards */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Recent Boards</h2>
+            <Link
+              to="/boards"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              View All
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {recentBoards.map((board) => (
+              <BoardCard key={board._id} board={board} />
+            ))}
+            {recentBoards.length === 0 && (
+              <div className="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">
+                No boards yet. Create your first board!
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Starred Boards */}
+        {starredBoards.length > 0 && (
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="mb-8"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                <FaStar className="inline-block mr-2 text-yellow-500" />
+                Starred Boards
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {starredBoards.map((board) => (
+                <BoardCard key={board._id} board={board} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Create Board Modal */}
+      <CreateBoardModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreateBoard}
+      />
+    </div>
+  );
+};
+
+export default Home;
