@@ -1,93 +1,37 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
+import logoSvg from '../assets/logo.svg';
 
 const Logo = ({ className = 'h-8 w-auto' }) => {
   const { darkMode } = useTheme();
 
   return (
-    <div className={`flex items-center ${className}`}>
-      <svg
-        className="h-full"
-        viewBox="0 0 64 64"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+    <div className={`flex items-center gap-3 ${className}`}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        whileHover={{ scale: 1.05 }}
+        transition={{ duration: 0.3 }}
+        className="relative"
       >
-        {/* Main Container */}
-        <rect
-          x="8"
-          y="8"
-          width="48"
-          height="48"
-          rx="12"
-          fill={darkMode ? '#3B82F6' : '#2563EB'}
+        <motion.img
+          src={logoSvg}
+          alt="ProFlowPro Logo"
+          className="h-10 w-10"
+          initial={{ rotate: -180 }}
+          animate={{ rotate: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         />
-        
-        {/* Project Blocks */}
-        <rect
-          x="16"
-          y="16"
-          width="14"
-          height="14"
-          rx="4"
-          fill={darkMode ? '#BFDBFE' : '#DBEAFE'}
-        />
-        <rect
-          x="34"
-          y="16"
-          width="14"
-          height="14"
-          rx="4"
-          fill={darkMode ? '#1E3A8A' : '#1D4ED8'}
-        />
-        <rect
-          x="16"
-          y="34"
-          width="14"
-          height="14"
-          rx="4"
-          fill={darkMode ? '#1E3A8A' : '#1D4ED8'}
-        />
-        <rect
-          x="34"
-          y="34"
-          width="14"
-          height="14"
-          rx="4"
-          fill={darkMode ? '#BFDBFE' : '#DBEAFE'}
-        />
-
-        {/* Connection Lines */}
-        <path
-          d="M30 23h4"
-          stroke={darkMode ? '#BFDBFE' : '#DBEAFE'}
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M23 30v4"
-          stroke={darkMode ? '#BFDBFE' : '#DBEAFE'}
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M41 30v4"
-          stroke={darkMode ? '#BFDBFE' : '#DBEAFE'}
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M30 41h4"
-          stroke={darkMode ? '#BFDBFE' : '#DBEAFE'}
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </svg>
-      <span className={`ml-3 text-xl font-bold tracking-tight ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-        ProFlow
-      </span>
-      <span className={`ml-1 text-sm font-medium ${darkMode ? 'text-blue-200' : 'text-blue-600'}`}>
-        Pro
-      </span>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="font-bold text-2xl bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-purple-500"
+      >
+        ProFlowPro
+      </motion.div>
     </div>
   );
 };
