@@ -9,6 +9,8 @@ import boardRoutes from './routes/boards.js';
 import taskRoutes from './routes/tasks.js';
 import notificationRoutes from './routes/notifications.js';
 import userRoutes from './routes/users.js';
+import projectRoutes from './routes/projectRoutes.js';
+import issueRoutes from './routes/issueRoutes.js';
 
 dotenv.config();
 
@@ -26,10 +28,12 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/projects', projectRoutes);
+app.use('/api/issues', issueRoutes);
 app.use('/api/boards', boardRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/users', userRoutes);
 
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
