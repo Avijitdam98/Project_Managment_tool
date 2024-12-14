@@ -55,30 +55,30 @@ const Login = () => {
         <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#4F46E5"/>
-                    <stop offset="100%" stop-color="#7C3AED"/>
+                    <stop offset="0%" stopColor="#4F46E5"/>
+                    <stop offset="100%" stopColor="#7C3AED"/>
                 </linearGradient>
                 <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stop-color="#34D399"/>
-                    <stop offset="100%" stop-color="#6EE7B7"/>
+                    <stop offset="0%" stopColor="#34D399"/>
+                    <stop offset="100%" stopColor="#6EE7B7"/>
                 </linearGradient>
                 <linearGradient id="cardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#E0E7FF"/>
-                    <stop offset="100%" stop-color="#CBD5E1"/>
+                    <stop offset="0%" stopColor="#E0E7FF"/>
+                    <stop offset="100%" stopColor="#CBD5E1"/>
                 </linearGradient>
             </defs>
             <circle cx="32" cy="32" r="30" fill="url(#logoGradient)"/>
-            <g stroke="#E0E7FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M18 16v32M32 16v32M46 16v32" stroke="#CBD5E1" stroke-width="1.5"/>
-                <rect x="20" y="20" width="10" height="8" rx="2" fill="url(#cardGradient)" stroke="#CBD5E1" stroke-width="0.5"/>
-                <rect x="34" y="20" width="10" height="8" rx="2" fill="url(#cardGradient)" stroke="#CBD5E1" stroke-width="0.5"/>
-                <rect x="20" y="32" width="10" height="8" rx="2" fill="url(#accentGradient)" stroke="#CBD5E1" stroke-width="0.5"/>
-                <rect x="34" y="32" width="10" height="8" rx="2" fill="url(#cardGradient)" stroke="#CBD5E1" stroke-width="0.5"/>
-                <rect x="20" y="44" width="10" height="8" rx="2" fill="url(#cardGradient)" stroke="#CBD5E1" stroke-width="0.5"/>
-                <rect x="34" y="44" width="10" height="8" rx="2" fill="url(#accentGradient)" stroke="#CBD5E1" stroke-width="0.5"/>
-                <path d="M25 28v4" stroke="url(#accentGradient)" stroke-dasharray="2 2"/>
-                <path d="M39 30v2" stroke="#CBD5E1" stroke-dasharray="2 2"/>
-                <path d="M39 42v2" stroke="#CBD5E1" stroke-dasharray="2 2"/>
+            <g stroke="#E0E7FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 16v32M32 16v32M46 16v32" stroke="#CBD5E1" strokeWidth="1.5"/>
+                <rect x="20" y="20" width="10" height="8" rx="2" fill="url(#cardGradient)" stroke="#CBD5E1" strokeWidth="0.5"/>
+                <rect x="34" y="20" width="10" height="8" rx="2" fill="url(#cardGradient)" stroke="#CBD5E1" strokeWidth="0.5"/>
+                <rect x="20" y="32" width="10" height="8" rx="2" fill="url(#accentGradient)" stroke="#CBD5E1" strokeWidth="0.5"/>
+                <rect x="34" y="32" width="10" height="8" rx="2" fill="url(#cardGradient)" stroke="#CBD5E1" strokeWidth="0.5"/>
+                <rect x="20" y="44" width="10" height="8" rx="2" fill="url(#cardGradient)" stroke="#CBD5E1" strokeWidth="0.5"/>
+                <rect x="34" y="44" width="10" height="8" rx="2" fill="url(#accentGradient)" stroke="#CBD5E1" strokeWidth="0.5"/>
+                <path d="M25 28v4" stroke="url(#accentGradient)" strokeDasharray="2 2"/>
+                <path d="M39 30v2" stroke="#CBD5E1" strokeDasharray="2 2"/>
+                <path d="M39 42v2" stroke="#CBD5E1" strokeDasharray="2 2"/>
                 <circle cx="24" cy="39" r="1.5" fill="url(#accentGradient)"/>
                 <circle cx="38" cy="24" r="1.5" fill="url(#accentGradient)"/>
             </g>

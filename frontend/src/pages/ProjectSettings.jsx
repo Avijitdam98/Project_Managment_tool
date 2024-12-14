@@ -1,199 +1,219 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { FaSave, FaTrash, FaTags, FaUsersCog } from 'react-icons/fa';
+import { useParams, useNavigate } from 'react-router-dom';
+import { FaSave, FaTrash, FaUserPlus, FaTimes } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const ProjectSettings = () => {
   const { projectId } = useParams();
-  const [settings, setSettings] = useState({
+  const navigate = useNavigate();
+  const [project, setProject] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
     name: '',
     description: '',
-    visibility: 'private',
-    issueTypes: [],
-    labels: [],
-    priorities: []
+    newMemberEmail: ''
   });
 
   useEffect(() => {
-    fetchProjectSettings();
+    fetchProjectDetails();
   }, [projectId]);
 
-  const fetchProjectSettings = async () => {
+  const fetchProjectDetails = async () => {
     try {
-      const response = await fetch(`/api/projects/${projectId}/settings`);
-      const data = await response.json();
-      setSettings(data);
+      setLoading(true);
+      const response = await axios.get(`/api/projects/${projectId}`);
+      setProject(response.data);
+      setFormData({
+        name: response.data.name,
+        description: response.data.description,
+        newMemberEmail: ''
+      });
     } catch (error) {
-      console.error('Error fetching project settings:', error);
+      toast.error('Failed to load project details');
+      console.error('Error fetching project details:', error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await fetch(`/api/projects/${projectId}/settings`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(settings),
+      await axios.patch(`/api/projects/${projectId}`, {
+        name: formData.name,
+        description: formData.description
       });
-      // Show success message
+      toast.success('Project updated successfully');
+      fetchProjectDetails();
     } catch (error) {
-      console.error('Error updating project settings:', error);
+      toast.error('Failed to update project');
+      console.error('Error updating project:', error);
+    }
+  };
+
+  const handleAddMember = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`/api/projects/${projectId}/members`, {
+        email: formData.newMemberEmail
+      });
+      toast.success('Member added successfully');
+      setFormData({ ...formData, newMemberEmail: '' });
+      fetchProjectDetails();
+    } catch (error) {
+      toast.error('Failed to add member');
+      console.error('Error adding member:', error);
+    }
+  };
+
+  const handleRemoveMember = async (memberId) => {
+    try {
+      await axios.delete(`/api/projects/${projectId}/members/${memberId}`);
+      toast.success('Member removed successfully');
+      fetchProjectDetails();
+    } catch (error) {
+      toast.error('Failed to remove member');
+      console.error('Error removing member:', error);
     }
   };
 
   const handleDeleteProject = async () => {
     if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
       try {
-        await fetch(`/api/projects/${projectId}`, {
-          method: 'DELETE',
-        });
-        // Redirect to projects list
+        await axios.delete(`/api/projects/${projectId}`);
+        toast.success('Project deleted successfully');
+        navigate('/');
       } catch (error) {
+        toast.error('Failed to delete project');
         console.error('Error deleting project:', error);
       }
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="container mx-auto px-4 py-8"
+    >
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Project Settings</h1>
+        <div className="bg-white dark:bg-surface-800 rounded-lg shadow-lg p-6 mb-6">
+          <h1 className="text-2xl font-bold mb-6">Project Settings</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* General Settings */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">General</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Project Name
-                </label>
-                <input
-                  type="text"
-                  value={settings.name}
-                  onChange={(e) => setSettings({ ...settings, name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Description
-                </label>
-                <textarea
-                  value={settings.description}
-                  onChange={(e) => setSettings({ ...settings, description: e.target.value })}
-                  rows={4}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-                />
-              </div>
+          {/* Project Details Form */}
+          <form onSubmit={handleSubmit} className="mb-8">
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">Project Name</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-600 dark:bg-surface-700"
+                required
+              />
             </div>
-          </div>
-
-          {/* Issue Types */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Issue Types</h2>
-            <div className="space-y-4">
-              {settings.issueTypes.map((type, index) => (
-                <div key={index} className="flex items-center space-x-4">
-                  <input
-                    type="text"
-                    value={type.name}
-                    onChange={(e) => {
-                      const newTypes = [...settings.issueTypes];
-                      newTypes[index].name = e.target.value;
-                      setSettings({ ...settings, issueTypes: newTypes });
-                    }}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newTypes = settings.issueTypes.filter((_, i) => i !== index);
-                      setSettings({ ...settings, issueTypes: newTypes });
-                    }}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => setSettings({
-                  ...settings,
-                  issueTypes: [...settings.issueTypes, { name: '', icon: '' }]
-                })}
-                className="flex items-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700"
-              >
-                + Add Issue Type
-              </button>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-600 dark:bg-surface-700"
+                rows="4"
+              />
             </div>
-          </div>
-
-          {/* Labels */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Labels</h2>
-              <FaTags className="text-gray-400" />
-            </div>
-            <div className="space-y-4">
-              {settings.labels.map((label, index) => (
-                <div key={index} className="flex items-center space-x-4">
-                  <input
-                    type="text"
-                    value={label}
-                    onChange={(e) => {
-                      const newLabels = [...settings.labels];
-                      newLabels[index] = e.target.value;
-                      setSettings({ ...settings, labels: newLabels });
-                    }}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newLabels = settings.labels.filter((_, i) => i !== index);
-                      setSettings({ ...settings, labels: newLabels });
-                    }}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => setSettings({ ...settings, labels: [...settings.labels, ''] })}
-                className="flex items-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700"
-              >
-                + Add Label
-              </button>
-            </div>
-          </div>
-
-          {/* Save Button */}
-          <div className="flex justify-between">
             <button
               type="submit"
-              className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
             >
               <FaSave className="mr-2" />
               Save Changes
             </button>
+          </form>
+
+          {/* Team Management */}
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-4">Team Members</h2>
+            <form onSubmit={handleAddMember} className="mb-4">
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  name="newMemberEmail"
+                  value={formData.newMemberEmail}
+                  onChange={handleInputChange}
+                  placeholder="Enter email address"
+                  className="flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary-600 dark:bg-surface-700"
+                />
+                <button
+                  type="submit"
+                  className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+                >
+                  <FaUserPlus className="mr-2" />
+                  Add Member
+                </button>
+              </div>
+            </form>
+
+            <div className="space-y-2">
+              {project?.members?.map((member) => (
+                <div
+                  key={member._id}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-surface-700 rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white">
+                      {member.name?.[0]?.toUpperCase()}
+                    </div>
+                    <div className="ml-3">
+                      <p className="font-semibold">{member.name}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{member.email}</p>
+                    </div>
+                  </div>
+                  {member._id !== project.owner && (
+                    <button
+                      onClick={() => handleRemoveMember(member._id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <FaTimes />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Danger Zone */}
+          <div className="border-t pt-6">
+            <h2 className="text-xl font-bold mb-4 text-red-600">Danger Zone</h2>
             <button
-              type="button"
               onClick={handleDeleteProject}
-              className="flex items-center px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
             >
               <FaTrash className="mr-2" />
               Delete Project
             </button>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

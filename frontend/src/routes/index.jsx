@@ -9,6 +9,8 @@ import Profile from '../pages/Profile';
 import Board from '../pages/Board';
 import CreateBoard from '../pages/CreateBoard';
 import EditBoard from '../pages/EditBoard';
+import ProjectDetails from '../pages/ProjectDetails';
+import ProjectSettings from '../pages/ProjectSettings';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -107,6 +109,22 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <EditBoard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/project/:projectId"
+        element={
+          <ProtectedRoute>
+            <ProjectDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/project/:projectId/settings"
+        element={
+          <ProtectedRoute>
+            <ProjectSettings />
           </ProtectedRoute>
         }
       />

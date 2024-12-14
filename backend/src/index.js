@@ -11,6 +11,7 @@ import notificationRoutes from './routes/notifications.js';
 import userRoutes from './routes/users.js';
 import projectRoutes from './routes/projectRoutes.js';
 import issueRoutes from './routes/issueRoutes.js';
+import analyticsRoutes from './routes/analytics.js';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/issues', issueRoutes);
 app.use('/api/boards', boardRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api', analyticsRoutes);
 
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {

@@ -33,20 +33,20 @@ const BoardCard = ({ board }) => {
   };
 
   // Calculate total tasks and completed tasks from the new column structure
-  const totalTasks = Object.values(board.columns || {}).reduce(
+  const totalTasks = board.columns?.reduce(
     (total, column) => total + (column.tasks?.length || 0),
     0
-  );
+  ) || 0;
 
-  const completedTasks = Object.values(board.columns || {}).reduce(
+  const completedTasks = board.columns?.reduce(
     (total, column) => {
-      if (column.id === 'done') {
+      if (column.title.toLowerCase() === 'done') {
         return total + (column.tasks?.length || 0);
       }
       return total;
     },
     0
-  );
+  ) || 0;
 
   return (
     <div
@@ -148,10 +148,17 @@ BoardCard.propTypes = {
     _id: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     description: PropTypes.string,
-    members: PropTypes.array,
-    columns: PropTypes.object,
-    updatedAt: PropTypes.string.isRequired,
-  }).isRequired,
+    createdAt: PropTypes.string,
+    updatedAt: PropTypes.string,
+    columns: PropTypes.arrayOf(
+      PropTypes.shape({
+        _id: PropTypes.string.isRequired,
+        title: PropTypes.string.isRequired,
+        tasks: PropTypes.arrayOf(PropTypes.object)
+      })
+    ).isRequired,
+    members: PropTypes.arrayOf(PropTypes.object)
+  }).isRequired
 };
 
 export default BoardCard;
