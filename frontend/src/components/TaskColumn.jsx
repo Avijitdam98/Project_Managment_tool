@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Droppable } from 'react-beautiful-dnd';
+import { Droppable } from '@hello-pangea/dnd';
 import Task from './Task';
 import { FaPlus, FaEllipsisH } from 'react-icons/fa';
 import PropTypes from 'prop-types';
@@ -101,9 +101,11 @@ const TaskColumn = ({ column, boardId, onEditTask }) => {
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`flex-1 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-16rem)] 
-              ${snapshot.isDraggingOver ? 'bg-primary-50/50' : ''} 
-              transition-colors duration-300`}
+            className={`
+              flex-1 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-16rem)] 
+              ${snapshot.isDraggingOver ? 'bg-primary-50/50' : ''}
+              transition-colors duration-200
+            `}
           >
             {column.tasks.map((task, index) => (
               <Task

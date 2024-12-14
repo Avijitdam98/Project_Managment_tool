@@ -1,45 +1,31 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { FiSun, FiMoon } from 'react-icons/fi';
+import React from 'react';
+import { FaSun, FaMoon } from 'react-icons/fa';
+import { useTheme } from '../context/ThemeContext';
 
 const ThemeToggle = () => {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const isDarkMode = localStorage.getItem('theme') === 'dark' ||
-      (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    setIsDark(isDarkMode);
-    document.documentElement.classList.toggle('dark', isDarkMode);
-  }, []);
-
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle('dark');
-    localStorage.setItem('theme', !isDark ? 'dark' : 'light');
-  };
+  const { darkMode, toggleDarkMode } = useTheme();
 
   return (
-    <motion.button
-      onClick={toggleTheme}
-      className="fixed bottom-6 right-6 p-3 rounded-full bg-surface-0 shadow-lg border border-surface-200
-        dark:bg-surface-800 dark:border-surface-700 hover:shadow-xl transition-shadow"
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.95 }}
-      initial={{ y: 20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+    <button
+      onClick={toggleDarkMode}
+      className={`
+        fixed bottom-8 right-8 p-3 rounded-full shadow-lg 
+        transition-all duration-300 ease-in-out transform hover:scale-110
+        ${darkMode 
+          ? 'bg-gray-800 text-yellow-400 hover:bg-gray-700' 
+          : 'bg-white text-gray-800 hover:bg-gray-100'
+        }
+        focus:outline-none focus:ring-2 focus:ring-offset-2 
+        ${darkMode ? 'focus:ring-yellow-400' : 'focus:ring-blue-500'}
+      `}
+      aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      <motion.div
-        initial={false}
-        animate={{ rotate: isDark ? 180 : 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {isDark ? (
-          <FiMoon className="w-6 h-6 text-primary-400" />
-        ) : (
-          <FiSun className="w-6 h-6 text-primary-500" />
-        )}
-      </motion.div>
-    </motion.button>
+      {darkMode ? (
+        <FaSun className="w-6 h-6" />
+      ) : (
+        <FaMoon className="w-6 h-6" />
+      )}
+    </button>
   );
 };
 
