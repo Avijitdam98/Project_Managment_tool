@@ -6,7 +6,7 @@ import TimelineConnector from '@mui/lab/TimelineConnector';
 import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
 import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent';
-import { FaCheckCircle, FaClock, FaExclamationCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaClock, FaExclamationCircle, FaCalendarAlt, FaUserClock } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
@@ -128,21 +128,53 @@ const TaskTimeline = ({ boards, showDetails = true }) => {
 
   return (
     <motion.div 
-      className="task-timeline bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg"
+      className="task-timeline bg-white dark:bg-gray-800 rounded-lg p-4 md:p-6 shadow-lg w-full max-w-6xl mx-auto overflow-hidden"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <Timeline position="alternate">
+      <Timeline position="alternate" sx={{
+        padding: { xs: '6px', sm: '12px', md: '16px' },
+        '& .MuiTimelineItem-root': {
+          minHeight: '120px',
+        },
+        '& .MuiTimelineContent-root': {
+          padding: '0 16px',
+        },
+        '& .MuiTimelineOppositeContent-root': {
+          padding: '0 16px',
+        }
+      }}>
         {recentTasks.map((task, index) => (
           <motion.div
             key={task._id}
             variants={itemVariants}
             custom={index}
+            className="w-full"
           >
             <TimelineItem>
-              <TimelineOppositeContent className="dark:text-gray-300">
-                {task.dueDate ? format(new Date(task.dueDate), 'MMM d, yyyy') : 'No due date'}
+              <TimelineOppositeContent>
+                <motion.div 
+                  className="flex flex-col items-end space-y-2 pr-2 sm:pr-4"
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <div className="flex items-center space-x-2 text-sm sm:text-base">
+                    <FaCalendarAlt className="text-gray-400 dark:text-gray-500 hidden sm:block" />
+                    <span className="font-medium text-gray-600 dark:text-gray-300 truncate">
+                      {task.dueDate ? format(new Date(task.dueDate), 'MMM d, yyyy') : 'No due date'}
+                    </span>
+                  </div>
+                  {task.estimatedTime && (
+                    <div className="flex items-center space-x-2 text-sm">
+                      <FaUserClock className="text-gray-400 dark:text-gray-500 hidden sm:block" />
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Est: {task.estimatedTime}h
+                      </span>
+                    </div>
+                  )}
+                </motion.div>
               </TimelineOppositeContent>
               
               <TimelineSeparator>
@@ -152,49 +184,61 @@ const TaskTimeline = ({ boards, showDetails = true }) => {
                 >
                   <TimelineDot 
                     color={getStatusColor(task.status, task.columnTitle)}
-                    className="cursor-pointer"
+                    className="cursor-pointer shadow-lg"
+                    sx={{ 
+                      width: { xs: '30px', sm: '40px' }, 
+                      height: { xs: '30px', sm: '40px' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: { xs: '0.9rem', sm: '1.2rem' }
+                    }}
                   >
                     {getStatusIcon(task.status, task.columnTitle)}
                   </TimelineDot>
                 </motion.div>
-                <TimelineConnector className="dark:bg-gray-600" />
+                <TimelineConnector className="dark:bg-gray-600" sx={{ width: '2px' }} />
               </TimelineSeparator>
               
               <TimelineContent>
                 <motion.div 
-                  className={`${getCardColor(task.columnTitle)} p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300`}
-                  whileHover={{ scale: 1.02 }}
+                  className={`${getCardColor(task.columnTitle)} p-3 sm:p-4 md:p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 relative overflow-hidden w-full`}
+                  whileHover={{ scale: 1.02, y: -5 }}
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  initial={{ opacity: 0, x: index % 2 === 0 ? 20 : -20 }}
+                  animate={{ opacity: 1, x: 0 }}
                 >
                   {boards.length > 1 && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                       {task.boardTitle}
                     </div>
                   )}
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
+                    <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white truncate">
                       {task.title}
                     </h3>
-                    <span className={`text-xs px-2 py-1 rounded-full ${getStatusBadgeColor(task.columnTitle)}`}>
+                    <span className={`text-xs px-2 py-1 sm:px-3 sm:py-1.5 rounded-full ${getStatusBadgeColor(task.columnTitle)} font-medium whitespace-nowrap`}>
                       {task.columnTitle}
                     </span>
                   </div>
+                  
                   {showDetails && (
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">
                         {task.description}
                       </p>
                       
                       {task.dependencies && task.dependencies.length > 0 && (
-                        <div className="mt-2">
-                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
                             Dependencies:
                           </p>
-                          <div className="flex flex-wrap gap-2 mt-1">
+                          <div className="flex flex-wrap gap-1.5">
                             {task.dependencies.map((dep) => (
                               <span
                                 key={dep._id}
-                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 truncate max-w-[150px]"
                               >
                                 {dep.title}
                               </span>
@@ -203,21 +247,16 @@ const TaskTimeline = ({ boards, showDetails = true }) => {
                         </div>
                       )}
                       
-                      <div className="mt-2 flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full ${
+                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                           task.priority === 'high'
                             ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                             : task.priority === 'medium'
                             ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                             : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                         }`}>
-                          {task.priority}
+                          Priority: {task.priority}
                         </span>
-                        {task.estimatedTime && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            Est: {task.estimatedTime}h
-                          </span>
-                        )}
                       </div>
                     </div>
                   )}
