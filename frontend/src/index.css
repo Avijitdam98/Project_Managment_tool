@@ -36,6 +36,15 @@
     --warning: 245 158 11;
     --error: 239 68 68;
     --info: 59 130 246;
+
+    /* Ant Design Custom Styles */
+    --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    --text-primary: rgba(0, 0, 0, 0.85);
+    --text-secondary: rgba(0, 0, 0, 0.65);
+    --bg-hover: rgba(0, 0, 0, 0.02);
+    --scrollbar-track: #f1f1f1;
+    --scrollbar-thumb: #888;
+    --scrollbar-thumb-hover: #555;
   }
 
   /* Dark Mode Colors */
@@ -63,6 +72,15 @@
     --primary-700: 167 243 208;
     --primary-800: 209 250 229;
     --primary-900: 236 253 245;
+
+    /* Ant Design Custom Styles */
+    --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    --text-primary: rgba(255, 255, 255, 0.85);
+    --text-secondary: rgba(255, 255, 255, 0.65);
+    --bg-hover: rgba(255, 255, 255, 0.08);
+    --scrollbar-track: #1f1f1f;
+    --scrollbar-thumb: #434343;
+    --scrollbar-thumb-hover: #666;
   }
 
   body {
@@ -82,6 +100,78 @@
   ::-webkit-scrollbar-thumb {
     @apply bg-surface-300 rounded-full hover:bg-surface-400 transition-colors;
   }
+}
+
+/* Ant Design Custom Styles */
+.ant-card {
+  transition: all 0.3s ease;
+}
+
+.ant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow);
+}
+
+.ant-statistic {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.ant-statistic-title {
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.ant-statistic-content {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.ant-progress {
+  margin-top: 8px;
+}
+
+/* Chart Container Styles */
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Hover Effects */
+.ant-btn:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
+}
+
+.ant-menu-item:hover {
+  background-color: var(--bg-hover);
+}
+
+/* Transitions */
+.theme-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Modern Component Styles */

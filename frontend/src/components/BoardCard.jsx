@@ -53,12 +53,12 @@ const BoardCard = ({ board }) => {
       onClick={() => navigate(`/board/${board._id}`)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 cursor-pointer border border-gray-200 dark:border-gray-700 overflow-hidden"
+      className="group relative bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 cursor-pointer border border-gray-200/50 dark:border-gray-700/50 overflow-hidden"
     >
       {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-300">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500" />
-        <div className="h-full w-full" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%239C92AC" fill-opacity="0.4" fill-rule="evenodd"%3E%3Ccircle cx="3" cy="3" r="3"/%3E%3Ccircle cx="13" cy="13" r="3"/%3E%3C/g%3E%3C/svg%3E")' }} />
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 dark:from-blue-400/10 dark:to-purple-400/10" />
+        <div className="h-full w-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px]" />
       </div>
 
       {/* Content */}

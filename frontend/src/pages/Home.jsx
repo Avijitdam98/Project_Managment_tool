@@ -229,8 +229,12 @@ const Home = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6">
-            <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12">
+        <div className="min-h-screen bg-gradient-to-br from-white via-slate-50/30 to-gray-100/40 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800/50 dark:to-gray-900/90">
+            {/* Subtle dot pattern overlay */}
+            <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,black,transparent)] opacity-20 pointer-events-none"></div>
+            {/* Subtle gradient shine effect */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,transparent_0%,rgba(255,255,255,0.5)_50%,transparent_100%)] dark:bg-[linear-gradient(to_right,transparent_0%,rgba(255,255,255,0.05)_50%,transparent_100%)] pointer-events-none"></div>
+            <div className="relative max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12">
                 {/* Welcome Section */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

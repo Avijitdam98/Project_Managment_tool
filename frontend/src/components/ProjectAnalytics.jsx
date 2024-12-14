@@ -13,6 +13,10 @@ import {
   PointElement,
 } from 'chart.js';
 import axios from 'axios';
+import { Card, Spin, Alert, Statistic, Typography, Row, Col, Progress, Space } from 'antd';
+import { CheckCircleOutlined, ClockCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+
+const { Title: AntTitle } = Typography;
 
 ChartJS.register(
   CategoryScale,
@@ -77,11 +81,7 @@ const ProjectAnalytics = ({ projectId }) => {
 
       try {
         setLoading(true);
-        console.log('Fetching analytics for project:', projectId);
         const response = await axios.get(`/api/boards/${projectId}/analytics`);
-        console.log('Analytics response:', response.data);
-        
-        // Ensure all required fields exist
         const data = {
           ...defaultAnalyticsData,
           ...response.data,
@@ -100,14 +100,11 @@ const ProjectAnalytics = ({ projectId }) => {
             ...(response.data.recentActivity || {})
           }
         };
-        
-        console.log('Processed analytics data:', data);
         setAnalyticsData(data);
         setError(null);
-      } catch (error) {
-        console.error('Error fetching analytics:', error);
-        setAnalyticsData(defaultAnalyticsData);
-        setError(error.response?.data?.message || 'Failed to load analytics data');
+      } catch (err) {
+        console.error('Error fetching analytics:', err);
+        setError('Failed to load analytics data');
       } finally {
         setLoading(false);
       }
@@ -118,159 +115,153 @@ const ProjectAnalytics = ({ projectId }) => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Spin size="large" tip="Loading analytics..." />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex justify-center items-center h-64 bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
-        <div className="text-red-500 dark:text-red-400">
-          <p>{error}</p>
-          <p className="text-sm mt-2">Please try again later</p>
-        </div>
+      <div style={{ padding: '24px' }}>
+        <Alert
+          message="Error"
+          description={error}
+          type="error"
+          showIcon
+        />
       </div>
     );
   }
 
-  // Create dynamic column data
-  const columnData = {
-    labels: analyticsData.columnTitles,
-    datasets: [
-      {
-        data: analyticsData.columnTitles.map(title => analyticsData.tasksByColumn[title] || 0),
-        backgroundColor: analyticsData.columnTitles.map(title => getColumnColor(title)),
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const taskPriorityData = {
-    labels: ['High', 'Medium', 'Low'],
-    datasets: [
-      {
-        label: 'Tasks by Priority',
-        data: [
-          analyticsData.tasksByPriority.high,
-          analyticsData.tasksByPriority.medium,
-          analyticsData.tasksByPriority.low,
-        ],
-        backgroundColor: [
-          'rgba(255, 99, 132, 0.7)',
-          'rgba(54, 162, 235, 0.7)',
-          'rgba(75, 192, 192, 0.7)',
-        ],
-      },
-    ],
-  };
-
-  const completionRate = analyticsData.totalTasks > 0
-    ? ((analyticsData.tasksByStatus.done / analyticsData.totalTasks) * 100).toFixed(1)
-    : 0;
-
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
-      <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Project Analytics</h2>
+    <div style={{ padding: '24px' }}>
+      <AntTitle level={2} style={{ marginBottom: '24px' }}>Project Analytics</AntTitle>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Task Status Distribution</h3>
-          <div className="h-64">
-            <Pie 
-              data={columnData} 
-              options={{ 
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'bottom',
-                    labels: {
-                      color: document.documentElement.classList.contains('dark') ? '#fff' : '#000'
-                    }
-                  }
-                }
-              }} 
+      {/* Overview Statistics */}
+      <Row gutter={[16, 16]} style={{ marginBottom: '32px' }}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Total Tasks"
+              value={analyticsData.totalTasks}
+              prefix={<CheckCircleOutlined />}
             />
-          </div>
-        </div>
-
-        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Tasks by Priority</h3>
-          <div className="h-64">
-            <Bar
-              data={taskPriorityData}
-              options={{
-                maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    ticks: {
-                      stepSize: 1,
-                      color: document.documentElement.classList.contains('dark') ? '#fff' : '#000'
-                    },
-                    grid: {
-                      color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-                    }
-                  },
-                  x: {
-                    ticks: {
-                      color: document.documentElement.classList.contains('dark') ? '#fff' : '#000'
-                    },
-                    grid: {
-                      color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
-                    }
-                  }
-                },
-                plugins: {
-                  legend: {
-                    display: false
-                  }
-                }
-              }}
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Active Users"
+              value={analyticsData.activeUsers}
+              prefix={<ClockCircleOutlined />}
             />
-          </div>
-        </div>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="Tasks Due Soon"
+              value={analyticsData.tasksDueSoon}
+              prefix={<ExclamationCircleOutlined />}
+              valueStyle={{ color: analyticsData.tasksDueSoon > 5 ? '#cf1322' : '#3f8600' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Statistic
+                title="Time Accuracy"
+                value={analyticsData.timeAccuracy}
+                suffix="%"
+              />
+              <Progress percent={analyticsData.timeAccuracy} status="active" />
+            </Space>
+          </Card>
+        </Col>
+      </Row>
 
-        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg col-span-1 md:col-span-2">
-          <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Project Summary</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-white dark:bg-gray-600 rounded-lg shadow">
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{analyticsData.totalTasks}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Total Tasks</p>
+      {/* Charts Section */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} lg={12}>
+          <Card title="Tasks by Status">
+            <div style={{ height: '300px' }}>
+              <Bar
+                data={{
+                  labels: Object.keys(analyticsData.tasksByStatus),
+                  datasets: [{
+                    data: Object.values(analyticsData.tasksByStatus),
+                    backgroundColor: [
+                      'rgba(255, 206, 86, 0.7)',
+                      'rgba(54, 162, 235, 0.7)',
+                      'rgba(75, 192, 192, 0.7)',
+                      'rgba(255, 99, 132, 0.7)'
+                    ]
+                  }]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false }
+                  }
+                }}
+              />
             </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-600 rounded-lg shadow">
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{completionRate}%</p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Completion Rate</p>
-            </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-600 rounded-lg shadow">
-              <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{analyticsData.tasksDueSoon}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Due Soon</p>
-            </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-600 rounded-lg shadow">
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {analyticsData.averageTaskCompletion?.toFixed(1) || 0} days
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Avg. Completion Time</p>
-            </div>
-          </div>
+          </Card>
+        </Col>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-            <div className="text-center p-4 bg-white dark:bg-gray-600 rounded-lg shadow">
-              <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{analyticsData.tasksWithDependencies}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Tasks with Dependencies</p>
+        <Col xs={24} lg={12}>
+          <Card title="Tasks by Priority">
+            <div style={{ height: '300px' }}>
+              <Pie
+                data={{
+                  labels: Object.keys(analyticsData.tasksByPriority),
+                  datasets: [{
+                    data: Object.values(analyticsData.tasksByPriority),
+                    backgroundColor: [
+                      'rgba(255, 99, 132, 0.7)',
+                      'rgba(54, 162, 235, 0.7)',
+                      'rgba(75, 192, 192, 0.7)'
+                    ]
+                  }]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false
+                }}
+              />
             </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-600 rounded-lg shadow">
-              <p className="text-2xl font-bold text-pink-600 dark:text-pink-400">{analyticsData.timeAccuracy}x</p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Time Estimation Accuracy</p>
+          </Card>
+        </Col>
+
+        <Col span={24}>
+          <Card title="Recent Activity">
+            <div style={{ height: '300px' }}>
+              <Line
+                data={{
+                  labels: ['Completed', 'In Progress', 'Blocked'],
+                  datasets: [{
+                    label: 'Tasks',
+                    data: [
+                      analyticsData.recentActivity.completed,
+                      analyticsData.recentActivity.inProgress,
+                      analyticsData.recentActivity.blocked
+                    ],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    tension: 0.1
+                  }]
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false
+                }}
+              />
             </div>
-            <div className="text-center p-4 bg-white dark:bg-gray-600 rounded-lg shadow">
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{analyticsData.activeUsers}</p>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Active Team Members</p>
-            </div>
-          </div>
-        </div>
-      </div>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 };

@@ -128,11 +128,15 @@ const TaskTimeline = ({ boards, showDetails = true }) => {
 
   return (
     <motion.div 
-      className="task-timeline bg-white dark:bg-gray-800 rounded-lg p-4 md:p-6 shadow-lg w-full max-w-6xl mx-auto overflow-hidden"
+      className="task-timeline bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,black,transparent)] opacity-10 pointer-events-none rounded-xl"></div>
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-blue-500/5 dark:from-transparent dark:via-blue-400/5 dark:to-purple-500/5 pointer-events-none rounded-xl"></div>
       <Timeline position="alternate" sx={{
         padding: { xs: '6px', sm: '12px', md: '16px' },
         '& .MuiTimelineItem-root': {
