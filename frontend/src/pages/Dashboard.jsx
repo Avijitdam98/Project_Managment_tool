@@ -1,425 +1,376 @@
-import { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { FaClipboardList, FaPlus, FaUser, FaClock, FaBell, FaStar, FaEllipsisH, FaTimes, FaChartLine } from 'react-icons/fa';
 import { fetchBoards, createBoard } from '../store/boardSlice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format, subDays, isAfter } from 'date-fns';
-import {
-  FaChartLine,
-  FaUsers,
-  FaTasks,
-  FaCheckCircle,
-  FaPlus,
-  FaSearch,
-  FaStar,
-  FaClock,
-  FaFilter,
-  FaSort,
-  FaBell,
-  FaCalendar,
-  FaChartBar,
-  FaUserFriends,
-  FaExclamationTriangle,
-} from 'react-icons/fa';
-import { Line } from 'react-chartjs-2';
-import BoardCard from '../components/BoardCard';
-import CreateBoardModal from '../components/CreateBoardModal';
+import { format } from 'date-fns';
+import ProjectAnalytics from '../components/ProjectAnalytics';
 import TaskTimeline from '../components/TaskTimeline';
+import DashboardCharts from '../components/DashboardCharts';
+
+const CreateBoardModal = ({ isOpen, onClose, onSubmit }) => {
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSubmit({ title, description });
+        setTitle('');
+        setDescription('');
+        onClose();
+    };
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                >
+                    <motion.div
+                        initial={{ scale: 0.95, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.95, opacity: 0 }}
+                        className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-2xl border dark:border-gray-700"
+                    >
+                        <div className="flex justify-between items-center mb-5">
+                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Create New Board</h2>
+                            <button
+                                onClick={onClose}
+                                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 focus:outline-none"
+                            >
+                                <FaTimes />
+                            </button>
+                        </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-4">
+                                <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+                                    Board Title
+                                </label>
+                                <input
+                                    type="text"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                    placeholder="Enter board title"
+                                    required
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+                                    Description
+                                </label>
+                                <textarea
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                    placeholder="Enter board description"
+                                    rows="3"
+                                />
+                            </div>
+                            <div className="flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="mr-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 focus:outline-none"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    Create Board
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+};
+
+const BoardCard = ({ board }) => (
+    <motion.div
+        whileHover={{ scale: 1.02 }}
+        className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-200 border dark:border-gray-700"
+    >
+        <div className="p-5">
+            <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                    <div
+                        className="w-8 h-8 rounded-md flex items-center justify-center"
+                        style={{ backgroundColor: board.color || '#4F46E5' }}
+                    >
+                        <FaClipboardList className="text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {board.title}
+                    </h3>
+                </div>
+                <button className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none">
+                    <FaEllipsisH />
+                </button>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                {board.description || 'No description provided'}
+            </p>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                    <div className="flex -space-x-2">
+                        {board.members?.slice(0, 3).map((member, index) => (
+                            <img
+                                key={index}
+                                src={member.avatar || '/default-avatar.png'}
+                                alt={member.name}
+                                className="w-6 h-6 rounded-full border-2 border-white dark:border-gray-800"
+                            />
+                        ))}
+                        {board.members?.length > 3 && (
+                            <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs text-gray-600 dark:text-gray-300 border-2 border-white dark:border-gray-800">
+                                +{board.members.length - 3}
+                            </div>
+                        )}
+                    </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {format(new Date(board.updatedAt), 'MMM d')}
+                    </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {board.columns?.reduce((acc, col) => acc + (col.tasks?.length || 0), 0) || 0} tasks
+                    </span>
+                </div>
+            </div>
+        </div>
+        <Link
+            to={`/board/${board._id}`}
+            className="block px-4 py-2 bg-gray-50 dark:bg-gray-700/50 text-sm text-center text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 rounded-b-2xl"
+        >
+            Open Board
+        </Link>
+    </motion.div>
+);
 
 const Dashboard = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [sortBy, setSortBy] = useState('recent');
-  const [showTimeline, setShowTimeline] = useState(false);
-  const [selectedView, setSelectedView] = useState('overview');
-  const [selectedTimeRange, setSelectedTimeRange] = useState('week');
-  
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { boards, loading } = useSelector((state) => state.boards);
-  const { user } = useSelector((state) => state.auth);
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const [searchParams] = useSearchParams();
+    const view = searchParams.get('view');
+    
+    const { boards, loading } = useSelector((state) => state.boards);
+    const { user } = useSelector((state) => state.auth);
+    const darkMode = useSelector((state) => state.theme?.darkMode) || false;
+    
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showAnalytics, setShowAnalytics] = useState(false);
+    const [selectedBoardForTimeline, setSelectedBoardForTimeline] = useState(null);
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-    } else {
-      dispatch(fetchBoards());
-    }
-  }, [user, dispatch, navigate]);
+    useEffect(() => {
+        dispatch(fetchBoards());
+    }, [dispatch]);
 
-  // Calculate statistics and analytics
-  const stats = {
-    totalBoards: boards?.length || 0,
-    activeTasks: boards?.reduce((acc, board) => {
-      return acc + board.columns?.reduce((taskAcc, col) => taskAcc + (col.tasks?.length || 0), 0);
-    }, 0) || 0,
-    completedTasks: boards?.reduce((acc, board) => {
-      const doneColumn = board.columns?.find(col => 
-        col.title.toLowerCase().includes('done')
-      );
-      return acc + (doneColumn?.tasks?.length || 0);
-    }, 0) || 0,
-    teamMembers: new Set(boards?.flatMap(board => board.members?.map(m => m._id))).size || 0,
-    upcomingDeadlines: boards?.reduce((acc, board) => {
-      const tasks = board.columns?.flatMap(col => col.tasks || []) || [];
-      return acc + tasks.filter(task => {
-        const deadline = new Date(task.dueDate);
-        return isAfter(deadline, new Date()) && isAfter(subDays(deadline, 7), new Date());
-      }).length;
-    }, 0) || 0,
-    overdueTasks: boards?.reduce((acc, board) => {
-      const tasks = board.columns?.flatMap(col => col.tasks || []) || [];
-      return acc + tasks.filter(task => {
-        const deadline = new Date(task.dueDate);
-        return isAfter(new Date(), deadline);
-      }).length;
-    }, 0) || 0
-  };
-
-  // Calculate activity data for charts
-  const getActivityData = () => {
-    const days = selectedTimeRange === 'week' ? 7 : 30;
-    const dates = Array.from({ length: days }, (_, i) => subDays(new Date(), i));
-    const activityData = dates.reduce((acc, date) => {
-      const dayStr = format(date, 'MMM dd');
-      acc[dayStr] = {
-        tasks: 0,
-        completed: 0
-      };
-      return acc;
-    }, {});
-
-    boards?.forEach(board => {
-      board.columns?.forEach(column => {
-        column.tasks?.forEach(task => {
-          const taskDate = format(new Date(task.createdAt), 'MMM dd');
-          if (activityData[taskDate]) {
-            activityData[taskDate].tasks++;
-            if (column.title.toLowerCase().includes('done')) {
-              activityData[taskDate].completed++;
+    const handleCreateBoard = async (boardData) => {
+        try {
+            const resultAction = await dispatch(createBoard(boardData));
+            if (createBoard.fulfilled.match(resultAction)) {
+                const newBoard = resultAction.payload;
+                navigate(`/board/${newBoard._id}`);
             }
-          }
-        });
-      });
-    });
-
-    return {
-      labels: Object.keys(activityData).reverse(),
-      datasets: [
-        {
-          label: 'Tasks Created',
-          data: Object.values(activityData).map(d => d.tasks).reverse(),
-          borderColor: '#3B82F6',
-          tension: 0.4
-        },
-        {
-          label: 'Tasks Completed',
-          data: Object.values(activityData).map(d => d.completed).reverse(),
-          borderColor: '#10B981',
-          tension: 0.4
+        } catch (error) {
+            console.error('Failed to create board:', error);
         }
-      ]
     };
-  };
 
-  // Get priority tasks
-  const getPriorityTasks = () => {
-    const allTasks = boards?.flatMap(board => 
-      board.columns?.flatMap(col => 
-        (col.tasks || []).map(task => ({
-          ...task,
-          boardTitle: board.title,
-          columnTitle: col.title
-        }))
-      ) || []
-    ) || [];
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+        );
+    }
 
-    return allTasks
-      .filter(task => task.priority === 'high')
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 5);
-  };
+    const renderDashboardView = () => (
+        <>
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border dark:border-gray-700"
+                >
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Total Boards</p>
+                            <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">{boards.length}</h3>
+                        </div>
+                        <div className="w-10 h-10 rounded-md bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                            <FaClipboardList className="text-blue-600 dark:text-blue-400" />
+                        </div>
+                    </div>
+                </motion.div>
 
-  // Get team activity
-  const getTeamActivity = () => {
-    const teamActivity = [];
-    boards?.forEach(board => {
-      board.columns?.forEach(column => {
-        column.tasks?.forEach(task => {
-          if (task.assignee) {
-            teamActivity.push({
-              user: task.assignee,
-              action: 'assigned to',
-              task: task.title,
-              board: board.title,
-              date: task.updatedAt
-            });
-          }
-          if (task.comments?.length > 0) {
-            task.comments.forEach(comment => {
-              teamActivity.push({
-                user: comment.user,
-                action: 'commented on',
-                task: task.title,
-                board: board.title,
-                date: comment.createdAt
-              });
-            });
-          }
-        });
-      });
-    });
+                <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border dark:border-gray-700"
+                >
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Active Tasks</p>
+                            <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                                {boards.reduce((acc, board) => 
+                                    acc + board.columns?.reduce((sum, col) => sum + (col.tasks?.length || 0), 0), 0)}
+                            </h3>
+                        </div>
+                        <div className="w-10 h-10 rounded-md bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                            <FaClock className="text-green-600 dark:text-green-400" />
+                        </div>
+                    </div>
+                </motion.div>
 
-    return teamActivity
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .slice(0, 5);
-  };
+                <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border dark:border-gray-700"
+                >
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Team Members</p>
+                            <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                                {new Set(boards.flatMap(board => board.members?.map(member => member._id) || [])).size}
+                            </h3>
+                        </div>
+                        <div className="w-10 h-10 rounded-md bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
+                            <FaUser className="text-purple-600 dark:text-purple-400" />
+                        </div>
+                    </div>
+                </motion.div>
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+                <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border dark:border-gray-700"
+                >
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Completion Rate</p>
+                            <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                                {Math.round(boards.reduce((acc, board) => {
+                                    const doneTasks = board.columns?.find(col => 
+                                        col.title.toLowerCase().includes('done'))?.tasks?.length || 0;
+                                    const totalTasks = board.columns?.reduce((sum, col) => 
+                                        sum + (col.tasks?.length || 0), 0) || 0;
+                                    return totalTasks > 0 ? acc + (doneTasks / totalTasks) : acc;
+                                }, 0) / (boards.length || 1) * 100)}%
+                            </h3>
+                        </div>
+                        <div className="w-10 h-10 rounded-md bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
+                            <FaChartLine className="text-yellow-600 dark:text-yellow-400" />
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+
+            {/* Analytics Charts */}
+            <div className="mb-8">
+                <DashboardCharts boards={boards} isDark={darkMode} />
+            </div>
+
+            {/* Project Timeline */}
+            <div className="col-span-full mt-8">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border dark:border-gray-700">
+                    <div className="flex flex-col space-y-4">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Project Timeline</h3>
+                            <div className="flex items-center space-x-4">
+                                <select
+                                    value={selectedBoardForTimeline?._id || ''}
+                                    onChange={(e) => {
+                                        const board = boards.find(b => b._id === e.target.value);
+                                        setSelectedBoardForTimeline(board);
+                                    }}
+                                    className="p-2 text-sm border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">All Boards</option>
+                                    {boards.map(board => (
+                                        <option key={board._id} value={board._id}>
+                                            {board.title}
+                                        </option>
+                                    ))}
+                                </select>
+                                <button 
+                                    onClick={() => setShowAnalytics(!showAnalytics)}
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                                >
+                                    {showAnalytics ? 'Hide Details' : 'Show Details'}
+                                </button>
+                            </div>
+                        </div>
+                        <TaskTimeline 
+                            boards={selectedBoardForTimeline ? [selectedBoardForTimeline] : boards}
+                            showDetails={showAnalytics}
+                        />
+                    </div>
+                </div>
+            </div>
+        </>
     );
-  }
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Dashboard Header */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Project Dashboard</h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Welcome back, {user?.name}! Here's your project overview.
-            </p>
-          </div>
-          <div className="flex items-center space-x-4 mt-4 md:mt-0">
-            <button
-              onClick={() => setSelectedTimeRange(selectedTimeRange === 'week' ? 'month' : 'week')}
-              className="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              <FaCalendar className="inline-block mr-2" />
-              {selectedTimeRange === 'week' ? 'Last Week' : 'Last Month'}
-            </button>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              <FaPlus className="inline-block mr-2" />
-              New Board
-            </button>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100">Total Boards</p>
-                <h3 className="text-2xl font-bold">{stats.totalBoards}</h3>
-              </div>
-              <FaChartLine className="w-8 h-8 text-blue-200" />
-            </div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100">Active Tasks</p>
-                <h3 className="text-2xl font-bold">{stats.activeTasks}</h3>
-              </div>
-              <FaTasks className="w-8 h-8 text-green-200" />
-            </div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100">Completed</p>
-                <h3 className="text-2xl font-bold">{stats.completedTasks}</h3>
-              </div>
-              <FaCheckCircle className="w-8 h-8 text-purple-200" />
-            </div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-yellow-100">Team Members</p>
-                <h3 className="text-2xl font-bold">{stats.teamMembers}</h3>
-              </div>
-              <FaUserFriends className="w-8 h-8 text-yellow-200" />
-            </div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-6 text-white"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-indigo-100">Upcoming</p>
-                <h3 className="text-2xl font-bold">{stats.upcomingDeadlines}</h3>
-              </div>
-              <FaBell className="w-8 h-8 text-indigo-200" />
-            </div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-6 text-white"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-red-100">Overdue</p>
-                <h3 className="text-2xl font-bold">{stats.overdueTasks}</h3>
-              </div>
-              <FaExclamationTriangle className="w-8 h-8 text-red-200" />
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Activity Chart */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Activity Overview</h2>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setSelectedTimeRange('week')}
-                  className={`px-3 py-1 rounded-lg ${
-                    selectedTimeRange === 'week'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                  }`}
-                >
-                  Week
-                </button>
-                <button
-                  onClick={() => setSelectedTimeRange('month')}
-                  className={`px-3 py-1 rounded-lg ${
-                    selectedTimeRange === 'month'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-                  }`}
-                >
-                  Month
-                </button>
-              </div>
-            </div>
-            <div className="h-[300px]">
-              <Line data={getActivityData()} options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    grid: {
-                      color: 'rgba(0, 0, 0, 0.1)',
-                    },
-                  },
-                  x: {
-                    grid: {
-                      display: false,
-                    },
-                  },
-                },
-                plugins: {
-                  legend: {
-                    position: 'bottom',
-                  },
-                },
-              }} />
-            </div>
-          </div>
-
-          {/* Priority Tasks */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Priority Tasks</h2>
-            <div className="space-y-4">
-              {getPriorityTasks().map((task) => (
-                <div
-                  key={task._id}
-                  className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">{task.title}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {task.boardTitle} • {task.columnTitle}
-                      </p>
-                    </div>
-                    <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
-                      High Priority
-                    </span>
-                  </div>
-                  {task.dueDate && (
-                    <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                      <FaCalendar className="inline-block mr-1" />
-                      Due {format(new Date(task.dueDate), 'MMM dd, yyyy')}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Team Activity */}
-        <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Recent Team Activity</h2>
-          <div className="space-y-4">
-            {getTeamActivity().map((activity, index) => (
-              <div
-                key={index}
-                className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
-              >
-                <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-medium">
-                      {activity.user.name?.[0] || 'U'}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {activity.user.name} {activity.action} "{activity.task}"
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    in {activity.board} • {format(new Date(activity.date), 'MMM dd, HH:mm')}
-                  </p>
-                </div>
-              </div>
+    const renderBoardsView = () => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {boards.map((board) => (
+                <BoardCard key={board._id} board={board} />
             ))}
-          </div>
         </div>
+    );
 
-        {/* Create Board Modal */}
-        {isModalOpen && (
-          <CreateBoardModal
-            onClose={() => setIsModalOpen(false)}
-            onSubmit={handleCreateBoard}
-          />
-        )}
-      </div>
-    </div>
-  );
+    return (
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {view === 'boards' ? 'All Boards' : 'Dashboard'}
+                    </h1>
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                        <FaPlus className="mr-2" />
+                        New Board
+                    </button>
+                </div>
+
+                {/* Navigation Tabs */}
+                <div className="flex space-x-4 mb-6">
+                    <Link
+                        to="/dashboard"
+                        className={`px-4 py-2 rounded-md text-sm font-medium ${
+                            !view ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                    >
+                        Overview
+                    </Link>
+                    <Link
+                        to="/dashboard?view=boards"
+                        className={`px-4 py-2 rounded-md text-sm font-medium ${
+                            view === 'boards' ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                        }`}
+                    >
+                        All Boards
+                    </Link>
+                </div>
+
+                {view === 'boards' ? renderBoardsView() : renderDashboardView()}
+
+                <CreateBoardModal
+                    isOpen={showCreateModal}
+                    onClose={() => setShowCreateModal(false)}
+                    onSubmit={handleCreateBoard}
+                />
+            </div>
+        </div>
+    );
 };
 
 export default Dashboard;
