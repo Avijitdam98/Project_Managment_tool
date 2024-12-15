@@ -9,11 +9,10 @@ import {
   FaUserCircle,
   FaBell,
   FaSearch,
-  FaSun,
-  FaMoon,
   FaSignOutAlt,
 } from 'react-icons/fa';
 import Logo from './Logo';
+import { ThemeToggle } from './theme-toggle';
 
 const Navbar = () => {
   const { user } = useSelector((state) => state.auth);
@@ -22,7 +21,6 @@ const Navbar = () => {
   const location = useLocation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [searchQuery, setLocalSearchQuery] = useState('');
 
   useEffect(() => {
@@ -59,11 +57,6 @@ const Navbar = () => {
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
-  };
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
   };
 
   if (!user) {
@@ -153,59 +146,47 @@ const Navbar = () => {
 
           {/* Right section */}
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
             <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-              title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
             >
-              {darkMode ? <FaSun /> : <FaMoon />}
-            </button>
-            <button className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 relative">
-              <FaBell />
-              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
-            </button>
-            <div className="relative">
-              <button
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="h-8 w-8 rounded-full object-cover"
-                  />
-                ) : (
-                  <FaUserCircle className="h-8 w-8 text-gray-600 dark:text-gray-300" />
-                )}
-                <span className="hidden md:block text-gray-800 dark:text-white">
-                  {user.name}
-                </span>
-              </button>
-
-              {/* Profile Dropdown */}
-              {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-48 rounded-lg bg-white shadow-lg dark:bg-gray-800 ring-1 ring-black ring-opacity-5">
-                  <div className="py-1">
-                    <Link
-                      to="/profile"
-                      className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                      onClick={() => setShowProfileMenu(false)}
-                    >
-                      <FaUserCircle />
-                      <span>Profile</span>
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center space-x-2 w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                    >
-                      <FaSignOutAlt />
-                      <span>Logout</span>
-                    </button>
-                  </div>
-                </div>
+              {user.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name}
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <FaUserCircle className="h-8 w-8 text-gray-600 dark:text-gray-300" />
               )}
-            </div>
+              <span className="hidden md:block text-gray-800 dark:text-white">
+                {user.name}
+              </span>
+            </button>
+
+            {/* Profile Dropdown */}
+            {showProfileMenu && (
+              <div className="absolute right-0 mt-2 w-48 rounded-lg bg-white shadow-lg dark:bg-gray-800 ring-1 ring-black ring-opacity-5">
+                <div className="py-1">
+                  <Link
+                    to="/profile"
+                    className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                    onClick={() => setShowProfileMenu(false)}
+                  >
+                    <FaUserCircle />
+                    <span>Profile</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center space-x-2 w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >
+                    <FaSignOutAlt />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
