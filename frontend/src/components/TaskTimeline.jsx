@@ -11,32 +11,72 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
 const TaskTimeline = ({ boards, showDetails = true }) => {
-  // Get all tasks from all boards
-  const allTasks = boards?.reduce((acc, board) => {
-    const boardTasks = board.columns?.reduce((tasks, column) => {
-      return tasks.concat(column.tasks?.map(task => ({
-        ...task,
-        boardTitle: board.title,
-        columnTitle: column.title
-      })) || []);
-    }, []) || [];
-    return acc.concat(boardTasks);
-  }, []) || [];
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3
+      }
+    }
+  };
 
-  // Sort tasks by due date and limit to most recent
-  // If it's a single board view, show more tasks
-  const maxTasks = boards?.length === 1 ? 10 : 5;
-  const recentTasks = allTasks
-    .filter(task => task.dueDate)
-    .sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate))
-    .slice(0, maxTasks);
+  const cardVariants = {
+    hidden: { 
+      opacity: 0,
+      y: 20,
+      scale: 0.95
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15
+      }
+    },
+    hover: {
+      scale: 1.02,
+      y: -5,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 10
+      }
+    }
+  };
 
+  const dotVariants = {
+    hidden: { scale: 0 },
+    visible: { 
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 500,
+        damping: 25
+      }
+    },
+    hover: { 
+      scale: 1.2,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 10
+      }
+    }
+  };
+
+  // Helper functions
   const getStatusColor = (status, columnTitle) => {
     const title = columnTitle?.toLowerCase();
     if (status === 'completed' || title?.includes('done')) return 'success';
     if (status === 'inProgress' || title?.includes('progress')) return 'primary';
     if (status === 'blocked') return 'error';
-    return 'warning'; // for Todo
+    return 'warning';
   };
 
   const getCardColor = (columnTitle) => {
@@ -53,223 +93,248 @@ const TaskTimeline = ({ boards, showDetails = true }) => {
     return 'bg-gray-50 dark:bg-gray-700';
   };
 
-  const getStatusBadgeColor = (columnTitle) => {
-    const title = columnTitle?.toLowerCase();
-    if (title?.includes('done')) {
-      return 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100';
-    }
-    if (title?.includes('progress')) {
-      return 'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100';
-    }
-    if (title?.includes('todo')) {
-      return 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100';
-    }
-    return 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300';
-  };
-
-  const getStatusIcon = (status, columnTitle) => {
-    const title = columnTitle?.toLowerCase();
-    if (status === 'completed' || title?.includes('done')) return <FaCheckCircle />;
-    if (status === 'blocked') return <FaExclamationCircle />;
-    return <FaClock />;
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+  const getPriorityBadge = (priority) => {
+    switch (priority?.toLowerCase()) {
+      case 'high':
+        return {
+          bg: 'bg-red-100 dark:bg-red-900/30',
+          text: 'text-red-800 dark:text-red-200',
+          icon: <FaExclamationCircle className="w-4 h-4 mr-1" />
+        };
+      case 'medium':
+        return {
+          bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+          text: 'text-yellow-800 dark:text-yellow-200',
+          icon: <FaClock className="w-4 h-4 mr-1" />
+        };
+      default:
+        return {
+          bg: 'bg-green-100 dark:bg-green-900/30',
+          text: 'text-green-800 dark:text-green-200',
+          icon: <FaCheckCircle className="w-4 h-4 mr-1" />
+        };
     }
   };
 
-  const itemVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 20,
-      scale: 0.95
-    },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 10
-      }
-    }
-  };
+  // Get all tasks from all boards with unique IDs
+  const allTasks = boards?.reduce((acc, board) => {
+    const boardTasks = board.columns?.reduce((tasks, column) => {
+      return tasks.concat(column.tasks?.map(task => ({
+        ...task,
+        uniqueId: `${board._id}-${column._id}-${task._id}`,
+        boardTitle: board.title,
+        columnTitle: column.title
+      })) || []);
+    }, []) || [];
+    return acc.concat(boardTasks);
+  }, []) || [];
 
-  if (!boards || boards.length === 0) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="flex justify-center items-center h-48 bg-gray-50 dark:bg-gray-800 rounded-lg"
-      >
-        <p className="text-gray-500 dark:text-gray-300">No tasks available</p>
-      </motion.div>
-    );
-  }
+  const maxTasks = boards?.length === 1 ? 10 : 5;
+  const recentTasks = allTasks
+    .filter(task => task.dueDate)
+    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+    .slice(0, maxTasks);
 
   if (recentTasks.length === 0) {
     return (
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="flex justify-center items-center h-48 bg-gray-50 dark:bg-gray-800 rounded-lg"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700"
       >
-        <p className="text-gray-500 dark:text-gray-300">No tasks with due dates found</p>
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }}
+        >
+          <FaCalendarAlt className="mx-auto h-16 w-16 mb-4 text-gray-400 dark:text-gray-500" />
+        </motion.div>
+        <motion.h3
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="text-xl font-semibold text-gray-900 dark:text-white mb-2"
+        >
+          No tasks with due dates found
+        </motion.h3>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto"
+        >
+          Add due dates to your tasks to see them in the timeline view
+        </motion.p>
       </motion.div>
     );
   }
 
   return (
-    <motion.div 
-      className="task-timeline bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50"
+    <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
+      className="relative"
     >
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,black,transparent)] opacity-10 pointer-events-none rounded-xl"></div>
-      {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-blue-500/5 dark:from-transparent dark:via-blue-400/5 dark:to-purple-500/5 pointer-events-none rounded-xl"></div>
-      <Timeline position="alternate" sx={{
-        padding: { xs: '6px', sm: '12px', md: '16px' },
-        '& .MuiTimelineItem-root': {
-          minHeight: '120px',
-        },
-        '& .MuiTimelineContent-root': {
-          padding: '0 16px',
-        },
-        '& .MuiTimelineOppositeContent-root': {
-          padding: '0 16px',
-        }
-      }}>
-        {recentTasks.map((task, index) => (
-          <motion.div
-            key={task._id}
-            variants={itemVariants}
-            custom={index}
-            className="w-full"
-          >
-            <TimelineItem>
-              <TimelineOppositeContent>
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800/30 dark:to-gray-900/30 rounded-xl" />
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px] opacity-25" />
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative p-6 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm shadow-xl border border-gray-200/50 dark:border-gray-700/50"
+      >
+        <Timeline position="right" className="px-4">
+          {recentTasks.map((task, index) => (
+            <TimelineItem key={task.uniqueId}>
+              <TimelineOppositeContent className="py-6">
                 <motion.div 
-                  className="flex flex-col items-end space-y-2 pr-2 sm:pr-4"
-                  initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+                  initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="flex flex-col items-end"
                 >
-                  <div className="flex items-center space-x-2 text-sm sm:text-base">
-                    <FaCalendarAlt className="text-gray-400 dark:text-gray-500 hidden sm:block" />
-                    <span className="font-medium text-gray-600 dark:text-gray-300 truncate">
-                      {task.dueDate ? format(new Date(task.dueDate), 'MMM d, yyyy') : 'No due date'}
-                    </span>
-                  </div>
-                  {task.estimatedTime && (
-                    <div className="flex items-center space-x-2 text-sm">
-                      <FaUserClock className="text-gray-400 dark:text-gray-500 hidden sm:block" />
-                      <span className="text-gray-500 dark:text-gray-400">
-                        Est: {task.estimatedTime}h
-                      </span>
-                    </div>
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    {format(new Date(task.dueDate), 'MMM d, yyyy')}
+                  </span>
+                  {showDetails && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="text-xs text-gray-500 dark:text-gray-500 mt-1"
+                    >
+                      {task.boardTitle}
+                    </motion.span>
                   )}
                 </motion.div>
               </TimelineOppositeContent>
               
               <TimelineSeparator>
                 <motion.div
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
+                  variants={dotVariants}
+                  whileHover="hover"
                 >
                   <TimelineDot 
                     color={getStatusColor(task.status, task.columnTitle)}
-                    className="cursor-pointer shadow-lg"
-                    sx={{ 
-                      width: { xs: '30px', sm: '40px' }, 
-                      height: { xs: '30px', sm: '40px' },
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: { xs: '0.9rem', sm: '1.2rem' }
-                    }}
+                    className="timeline-dot cursor-pointer"
                   >
-                    {getStatusIcon(task.status, task.columnTitle)}
+                    {task.columnTitle?.toLowerCase().includes('done') ? (
+                      <FaCheckCircle className="h-5 w-5" />
+                    ) : (
+                      <FaClock className="h-5 w-5" />
+                    )}
                   </TimelineDot>
                 </motion.div>
-                <TimelineConnector className="dark:bg-gray-600" sx={{ width: '2px' }} />
+                {index < recentTasks.length - 1 && (
+                  <motion.div
+                    initial={{ height: 0 }}
+                    animate={{ height: "auto" }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  >
+                    <TimelineConnector />
+                  </motion.div>
+                )}
               </TimelineSeparator>
-              
-              <TimelineContent>
+
+              <TimelineContent className="py-6">
                 <motion.div 
-                  className={`${getCardColor(task.columnTitle)} p-3 sm:p-4 md:p-6 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 relative overflow-hidden w-full`}
-                  whileHover={{ scale: 1.02, y: -5 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  initial={{ opacity: 0, x: index % 2 === 0 ? 20 : -20 }}
-                  animate={{ opacity: 1, x: 0 }}
+                  variants={cardVariants}
+                  whileHover="hover"
+                  className={`p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ${getCardColor(task.columnTitle)} border border-gray-100 dark:border-gray-700 backdrop-blur-sm relative overflow-hidden`}
                 >
-                  {boards.length > 1 && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                      {task.boardTitle}
-                    </div>
-                  )}
+                  {/* Card Background Pattern */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-gray-800/50 dark:to-transparent pointer-events-none" />
                   
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
-                    <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 dark:text-white truncate">
-                      {task.title}
-                    </h3>
-                    <span className={`text-xs px-2 py-1 sm:px-3 sm:py-1.5 rounded-full ${getStatusBadgeColor(task.columnTitle)} font-medium whitespace-nowrap`}>
-                      {task.columnTitle}
-                    </span>
-                  </div>
-                  
-                  {showDetails && (
-                    <div className="space-y-3">
-                      <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-3">
-                        {task.description}
-                      </p>
-                      
-                      {task.dependencies && task.dependencies.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                            Dependencies:
-                          </p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {task.dependencies.map((dep) => (
-                              <span
-                                key={dep._id}
-                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 truncate max-w-[150px]"
-                              >
-                                {dep.title}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
+                  <div className="relative">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {task.title}
+                      </h3>
+                      {task.priority && (
+                        <motion.div
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className={`flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPriorityBadge(task.priority).bg} ${getPriorityBadge(task.priority).text}`}
+                        >
+                          {getPriorityBadge(task.priority).icon}
+                          {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                        </motion.div>
                       )}
-                      
-                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          task.priority === 'high'
-                            ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                            : task.priority === 'medium'
-                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                            : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        }`}>
-                          Priority: {task.priority}
-                        </span>
-                      </div>
                     </div>
-                  )}
+                    
+                    {showDetails && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="space-y-4"
+                      >
+                        {task.description && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                            {task.description}
+                          </p>
+                        )}
+                        
+                        <div className="flex flex-wrap gap-3 pt-3">
+                          {/* Column Badge */}
+                          <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            className="flex items-center px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-xs font-medium text-gray-700 dark:text-gray-300"
+                          >
+                            <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: task.color || '#9CA3AF' }} />
+                            {task.columnTitle}
+                          </motion.div>
+                          
+                          {/* Assignee Badge */}
+                          {task.assignee && (
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              className="flex items-center px-3 py-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-xs font-medium text-blue-800 dark:text-blue-200"
+                            >
+                              <FaUserClock className="mr-1.5 w-3.5 h-3.5" />
+                              {task.assignee.name}
+                            </motion.div>
+                          )}
+                        </div>
+
+                        {/* Checklist Progress if exists */}
+                        {task.checklist && task.checklist.length > 0 && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="pt-3"
+                          >
+                            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
+                              <span>Checklist Progress</span>
+                              <span>
+                                {task.checklist.filter(item => item.completed).length}/{task.checklist.length}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ 
+                                  width: `${(task.checklist.filter(item => item.completed).length / task.checklist.length) * 100}%` 
+                                }}
+                                transition={{ duration: 0.5, delay: 0.4 }}
+                                className="bg-blue-600 dark:bg-blue-500 h-full rounded-full"
+                              />
+                            </div>
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    )}
+                  </div>
                 </motion.div>
               </TimelineContent>
             </TimelineItem>
-          </motion.div>
-        ))}
-      </Timeline>
+          ))}
+        </Timeline>
+      </motion.div>
     </motion.div>
   );
 };

@@ -104,12 +104,12 @@ export const updateTask = createAsyncThunk(
 
 export const moveTask = createAsyncThunk(
   'boards/moveTask',
-  async ({ boardId, taskId, sourceColumnIndex, destinationColumnIndex, newPosition }, { rejectWithValue }) => {
+  async ({ boardId, taskId, sourceColumnIndex, destinationColumnIndex, position }, { rejectWithValue }) => {
     try {
       const response = await axios.put(`/api/boards/${boardId}/tasks/${taskId}/move`, {
         sourceColumnIndex,
         destinationColumnIndex,
-        newPosition
+        position
       });
       return response.data;
     } catch (error) {
@@ -120,11 +120,11 @@ export const moveTask = createAsyncThunk(
 
 const initialState = {
   boards: [],
+  filteredBoards: [],
   currentBoard: null,
   loading: false,
   error: null,
   searchQuery: '',
-  filteredBoards: []
 };
 
 const boardSlice = createSlice({
@@ -145,6 +145,9 @@ const boardSlice = createSlice({
     clearBoardState(state) {
       state.currentBoard = null;
       state.error = null;
+    },
+    updateCurrentBoard: (state, action) => {
+      state.currentBoard = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -255,14 +258,21 @@ const boardSlice = createSlice({
       })
 
     // Move Task
+      .addCase(moveTask.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(moveTask.fulfilled, (state, action) => {
-        if (state.currentBoard?._id === action.payload._id) {
-          state.currentBoard = action.payload;
-        }
+        state.loading = false;
+        // The board will be refreshed via fetchBoardDetails
+      })
+      .addCase(moveTask.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   }
 });
 
-export const { setSearchQuery, clearBoardState } = boardSlice.actions;
+export const { setSearchQuery, clearBoardState, updateCurrentBoard } = boardSlice.actions;
 
 export default boardSlice.reducer;

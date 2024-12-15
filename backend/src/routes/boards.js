@@ -1,6 +1,7 @@
 import express from 'express';
 import { auth } from '../middleware/auth.js';
 import { Board } from '../models/Board.js';
+import { Task } from '../models/Task.js'; // Import Task model
 import { emitBoardUpdate } from '../services/socket.js';
 
 const router = express.Router();
@@ -40,6 +41,13 @@ router.get('/', auth, async (req, res) => {
     })
     .populate('members.user', 'name email avatar')
     .populate('createdBy', 'name email avatar')
+    .populate({
+      path: 'columns.tasks',
+      populate: [
+        { path: 'assignee', select: 'name email avatar' },
+        { path: 'createdBy', select: 'name email avatar' }
+      ]
+    })
     .sort('-updatedAt');
     
     res.json(boards);
@@ -52,6 +60,39 @@ router.get('/', auth, async (req, res) => {
 // Get a specific board
 router.get('/:boardId', auth, async (req, res) => {
   try {
+    console.log('[Board Fetch] Fetching board:', req.params.boardId);
+
+    // First, get all tasks for this board
+    const tasks = await Task.find({ 
+      board: req.params.boardId,
+      isArchived: false 
+    })
+    .populate('assignee', 'name email avatar status')
+    .populate('createdBy', 'name email avatar')
+    .lean()
+    .exec();
+
+    console.log('[Board Fetch] Found tasks:', tasks.length);
+
+    // Group tasks by column
+    const tasksByColumn = tasks.reduce((acc, task) => {
+      if (typeof task.column === 'number') {
+        if (!acc[task.column]) {
+          acc[task.column] = [];
+        }
+        acc[task.column].push(task);
+      }
+      return acc;
+    }, {});
+
+    console.log('[Board Fetch] Tasks grouped by column:', 
+      Object.keys(tasksByColumn).map(col => ({ 
+        column: col, 
+        taskCount: tasksByColumn[col].length 
+      }))
+    );
+
+    // Get the board
     const board = await Board.findOne({
       _id: req.params.boardId,
       'members.user': req.user._id,
@@ -59,22 +100,36 @@ router.get('/:boardId', auth, async (req, res) => {
     })
     .populate('members.user', 'name email avatar')
     .populate('createdBy', 'name email avatar')
-    .populate({
-      path: 'columns.tasks',
-      populate: [
-        { path: 'assignee', select: 'name email avatar' },
-        { path: 'createdBy', select: 'name email avatar' },
-        { path: 'comments.user', select: 'name email avatar' }
-      ]
-    });
+    .lean()
+    .exec();
 
     if (!board) {
+      console.log('[Board Fetch] Board not found:', req.params.boardId);
       return res.status(404).json({ error: 'Board not found' });
     }
 
+    // Ensure columns exist
+    if (!board.columns) {
+      board.columns = [];
+    }
+
+    // Merge tasks into columns
+    board.columns = board.columns.map((column, index) => ({
+      ...column,
+      tasks: tasksByColumn[index] || []
+    }));
+
+    console.log('[Board Fetch] Final board structure:', {
+      id: board._id,
+      columns: board.columns.map(c => ({
+        title: c.title,
+        taskCount: c.tasks.length
+      }))
+    });
+
     res.json(board);
   } catch (error) {
-    console.error('Error fetching board:', error);
+    console.error('[Board Fetch] Error:', error);
     res.status(500).json({ error: 'Failed to fetch board' });
   }
 });
@@ -106,87 +161,197 @@ router.post('/:boardId/columns', auth, async (req, res) => {
 // Add a task to a column
 router.post('/:boardId/columns/:columnId/tasks', auth, async (req, res) => {
   try {
+    console.log('[Task Creation] Step 1: Starting task creation with data:', {
+      boardId: req.params.boardId,
+      columnId: req.params.columnId,
+      userId: req.user._id,
+      taskData: req.body
+    });
+
+    // Find board and ensure it exists
     const board = await Board.findOne({
       _id: req.params.boardId,
       'members.user': req.user._id
-    });
+    }).lean().exec();
 
     if (!board) {
+      console.log('[Task Creation] Board not found:', req.params.boardId);
       return res.status(404).json({ error: 'Board not found' });
     }
 
+    console.log('[Task Creation] Step 2: Found board:', board._id);
+    console.log('[Task Creation] Board columns:', board.columns?.map(c => ({
+      title: c.title,
+      tasksCount: Array.isArray(c.tasks) ? c.tasks.length : 0
+    })) || []);
+
+    // Convert columnId to column index
     const columnIndex = parseInt(req.params.columnId);
-    if (isNaN(columnIndex)) {
+    if (isNaN(columnIndex) || !board.columns || columnIndex < 0 || columnIndex >= board.columns.length) {
+      console.log('[Task Creation] Invalid column index:', columnIndex, 'max:', (board.columns?.length || 0) - 1);
       return res.status(400).json({ error: 'Invalid column index' });
     }
 
-    const column = board.columns[columnIndex];
-    if (!column) {
-      return res.status(404).json({ error: 'Column not found' });
-    }
-
-    const task = {
+    // Create new task with column index
+    const taskData = {
       ...req.body,
+      board: board._id,
+      column: columnIndex,
       createdBy: req.user._id,
-      status: column.title.toLowerCase().replace(/\s+/g, '-')
+      status: columnIndex === 0 ? 'to-do' : columnIndex === 1 ? 'in-progress' : 'done'
     };
 
-    if (!task.title) {
-      return res.status(400).json({ error: 'Task title is required' });
+    console.log('[Task Creation] Step 3: Creating task with data:', taskData);
+
+    const newTask = await Task.create(taskData);
+    console.log('[Task Creation] Step 4: Task created:', newTask);
+
+    // Update board with new task
+    const updatedBoard = await Board.findOneAndUpdate(
+      { 
+        _id: board._id,
+        'members.user': req.user._id
+      },
+      { 
+        $push: { 
+          [`columns.${columnIndex}.tasks`]: newTask._id 
+        }
+      },
+      { 
+        new: true,
+        runValidators: true
+      }
+    );
+
+    if (!updatedBoard) {
+      console.log('[Task Creation] Failed to update board with task');
+      await Task.findByIdAndDelete(newTask._id);
+      return res.status(500).json({ error: 'Failed to update board with task' });
     }
 
-    // Add task to column
-    column.tasks.push(task);
+    console.log('[Task Creation] Step 5: Updated board column tasks:', {
+      columnIndex,
+      tasksCount: updatedBoard.columns[columnIndex].tasks.length,
+      lastTaskId: updatedBoard.columns[columnIndex].tasks[updatedBoard.columns[columnIndex].tasks.length - 1]
+    });
 
-    // Save board with new task
-    await board.save();
+    // Populate task data
+    const populatedTask = await Task.findById(newTask._id)
+      .populate('assignee', 'name email avatar status')
+      .populate('board', 'title')
+      .populate('createdBy', 'name email avatar');
 
-    // Populate the task's references
-    const populatedBoard = await Board.findById(board._id)
-      .populate('columns.tasks.assignee', 'name email avatar')
-      .populate('columns.tasks.createdBy', 'name email avatar');
+    console.log('[Task Creation] Step 6: Task populated:', populatedTask);
 
-    const populatedTask = populatedBoard.columns[columnIndex].tasks.slice(-1)[0];
-
-    // Emit task creation event
-    emitBoardUpdate(board._id, 'task-added', {
-      columnId: columnIndex,
-      task: populatedTask
+    // Emit socket event
+    emitBoardUpdate(board._id, 'task-created', {
+      task: populatedTask,
+      boardId: board._id,
+      columnIndex
     });
 
     res.status(201).json(populatedTask);
   } catch (error) {
-    console.error('Error adding task:', error);
-    res.status(500).json({ error: error.message || 'Failed to add task' });
+    console.error('[Task Creation] Error:', error);
+    console.error('[Task Creation] Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to create task',
+      details: error.message 
+    });
   }
 });
 
 // Move a task between columns
 router.put('/:boardId/tasks/:taskId/move', auth, async (req, res) => {
   try {
-    const { sourceColumnIndex, destinationColumnIndex, newPosition } = req.body;
-    const board = await Board.findOne({
-      _id: req.params.boardId,
-      'members.user': req.user._id
+    console.log('[Task Move] Starting task move:', {
+      boardId: req.params.boardId,
+      taskId: req.params.taskId,
+      sourceIndex: req.body.sourceColumnIndex,
+      destIndex: req.body.destinationColumnIndex,
+      position: req.body.position
     });
 
+    // First, update the task's column
+    const task = await Task.findOneAndUpdate(
+      { 
+        _id: req.params.taskId,
+        board: req.params.boardId
+      },
+      { 
+        $set: { 
+          column: req.body.destinationColumnIndex,
+          status: req.body.destinationColumnIndex === 0 ? 'to-do' : 
+                 req.body.destinationColumnIndex === 1 ? 'in-progress' : 'done'
+        }
+      },
+      { new: true }
+    ).populate('assignee', 'name email avatar status')
+     .populate('createdBy', 'name email avatar');
+
+    if (!task) {
+      console.log('[Task Move] Task not found:', req.params.taskId);
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    console.log('[Task Move] Updated task column:', task.column);
+
+    // Then, update the board's columns
+    const board = await Board.findOneAndUpdate(
+      { 
+        _id: req.params.boardId,
+        'members.user': req.user._id
+      },
+      { 
+        $pull: { 
+          [`columns.${req.body.sourceColumnIndex}.tasks`]: task._id 
+        }
+      },
+      { new: true }
+    );
+
     if (!board) {
+      console.log('[Task Move] Board not found:', req.params.boardId);
       return res.status(404).json({ error: 'Board not found' });
     }
 
-    await board.moveTask(req.params.taskId, sourceColumnIndex, destinationColumnIndex, newPosition);
+    console.log('[Task Move] Removed task from source column');
 
-    // Emit task move event
+    // Add task to destination column
+    const position = typeof req.body.position === 'number' ? req.body.position : board.columns[req.body.destinationColumnIndex].tasks.length;
+    
+    const updatedBoard = await Board.findOneAndUpdate(
+      { 
+        _id: req.params.boardId,
+        'members.user': req.user._id
+      },
+      { 
+        $push: { 
+          [`columns.${req.body.destinationColumnIndex}.tasks`]: {
+            $each: [task._id],
+            $position: position
+          }
+        }
+      },
+      { new: true }
+    )
+    .populate('members.user', 'name email avatar')
+    .populate('createdBy', 'name email avatar');
+
+    console.log('[Task Move] Added task to destination column at position:', position);
+
+    // Emit board update
     emitBoardUpdate(board._id, 'task-moved', {
-      taskId: req.params.taskId,
-      sourceColumnIndex,
-      destinationColumnIndex,
-      newPosition
+      task,
+      boardId: board._id,
+      sourceColumnIndex: req.body.sourceColumnIndex,
+      destinationColumnIndex: req.body.destinationColumnIndex,
+      position
     });
 
-    res.json(board);
+    res.json({ board: updatedBoard, task });
   } catch (error) {
-    console.error('Error moving task:', error);
+    console.error('[Task Move] Error:', error);
     res.status(500).json({ error: 'Failed to move task' });
   }
 });
