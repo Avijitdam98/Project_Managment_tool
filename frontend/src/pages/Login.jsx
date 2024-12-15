@@ -3,8 +3,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { login, clearError } from '../store/authSlice';
 import { toast } from 'react-toastify';
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa'; // Import Eye Icons
-
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../components/ui/card";
 
 const Login = () => {
     const [formData, setFormData] = useState({
@@ -39,7 +42,6 @@ const Login = () => {
     const togglePasswordVisibility = () => {
         setPasswordVisible(!passwordVisible);
     };
-
 
     const onSubmit = async (e) => {
         e.preventDefault();
@@ -85,98 +87,94 @@ const Login = () => {
         </svg>
     );
 
-
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-2xl border dark:border-gray-700">
-                <div className="flex justify-center">
-                    <Logo/>
-                </div>
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-semibold text-gray-900 dark:text-white">
-                        Welcome Back
-                    </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-                        New to our platform?{' '}
-                        <Link to="/register" className="font-medium text-blue-500 hover:text-blue-600">
+            <Card className="w-full max-w-md space-y-8 bg-white dark:bg-gray-800 p-8">
+                <CardHeader className="text-center">
+                    <div className="flex justify-center">
+                        <Logo />
+                    </div>
+                    <CardTitle className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                        Sign in to your account
+                    </CardTitle>
+                    <CardDescription className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        Or{" "}
+                        <Link to="/register" className="font-medium text-primary hover:text-primary/90">
                             Create an Account
                         </Link>
-                    </p>
-                </div>
-                <form className="mt-8 space-y-6" onSubmit={onSubmit}>
-                    <div className="rounded-md shadow-sm space-y-4">
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <FaEnvelope className="h-5 w-5 text-gray-400" />
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={onSubmit} className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <FaEnvelope className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <Input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    required
+                                    className="pl-10"
+                                    placeholder="Email address"
+                                    value={email}
+                                    onChange={onChange}
+                                />
                             </div>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                required
-                                className="appearance-none relative block w-full pl-10 px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 sm:text-sm"
-                                placeholder="Email address"
-                                value={email}
-                                onChange={onChange}
-                            />
                         </div>
-                         <div className="relative">
-                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <FaLock className="h-5 w-5 text-gray-400" />
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <FaLock className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <Input
+                                    id="password"
+                                    name="password"
+                                    type={passwordVisible ? "text" : "password"}
+                                    required
+                                    className="pl-10 pr-10"
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={onChange}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={togglePasswordVisibility}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                >
+                                    {passwordVisible ? (
+                                        <FaEyeSlash className="h-5 w-5 text-gray-400" />
+                                    ) : (
+                                        <FaEye className="h-5 w-5 text-gray-400" />
+                                    )}
+                                </button>
                             </div>
-                           <input
-                                id="password"
-                                name="password"
-                                type={passwordVisible ? "text" : "password"} // Toggle type
-                                required
-                                className="appearance-none relative block w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 sm:text-sm"
-                                placeholder="Password"
-                                value={password}
-                                onChange={onChange}
-                           />
-                              <button
-                                type="button"
-                                onClick={togglePasswordVisibility}
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center focus:outline-none"
-                            >
-                            {passwordVisible ? (
-                            <FaEyeSlash className="h-5 w-5 text-gray-400 cursor-pointer" />
-                                ) : (
-                                <FaEye className="h-5 w-5 text-gray-400 cursor-pointer" />
-                                )}
-                            </button>
-                         </div>
-                    </div>
-
-                    <div>
-                        <button
+                        </div>
+                        <Button
                             type="submit"
+                            className="w-full"
                             disabled={loading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                         >
-                            {loading ? (
-                                <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                                    <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                    ></circle>
-                                    <path
-                                        className="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                    ></path>
-                                </svg>
-                            ) : (
-                                'Sign in'
-                            )}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                            {loading ? "Signing in..." : "Sign in"}
+                        </Button>
+                    </form>
+                </CardContent>
+                <CardFooter className="text-center">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                        By signing in, you agree to our{" "}
+                        <Link to="/terms" className="font-medium text-primary hover:text-primary/90">
+                            Terms of Service
+                        </Link>{" "}
+                        and{" "}
+                        <Link to="/privacy" className="font-medium text-primary hover:text-primary/90">
+                            Privacy Policy
+                        </Link>
+                    </p>
+                </CardFooter>
+            </Card>
         </div>
     );
 };

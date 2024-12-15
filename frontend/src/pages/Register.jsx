@@ -4,6 +4,17 @@ import { useDispatch } from 'react-redux';
 import { register } from '../store/authSlice';
 import { toast } from 'react-toastify';
 import { FaUser, FaEnvelope, FaLock, FaUserShield } from 'react-icons/fa';
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +30,10 @@ const Register = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleRoleChange = (value) => {
+    setFormData({ ...formData, role: value });
   };
 
   const handleSubmit = async (e) => {
@@ -39,123 +54,176 @@ const Register = () => {
     }
   };
 
+  const Logo = () => (
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#4F46E5"/>
+          <stop offset="100%" stopColor="#7C3AED"/>
+        </linearGradient>
+        <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#34D399"/>
+          <stop offset="100%" stopColor="#6EE7B7"/>
+        </linearGradient>
+        <linearGradient id="cardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#E0E7FF"/>
+          <stop offset="100%" stopColor="#CBD5E1"/>
+        </linearGradient>
+      </defs>
+      <circle cx="32" cy="32" r="30" fill="url(#logoGradient)"/>
+      <g stroke="#E0E7FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 16v32M32 16v32M46 16v32" stroke="#CBD5E1" strokeWidth="1.5"/>
+        <rect x="20" y="20" width="10" height="8" rx="2" fill="url(#cardGradient)" stroke="#CBD5E1" strokeWidth="0.5"/>
+        <rect x="34" y="20" width="10" height="8" rx="2" fill="url(#cardGradient)" stroke="#CBD5E1" strokeWidth="0.5"/>
+        <rect x="20" y="32" width="10" height="8" rx="2" fill="url(#accentGradient)" stroke="#CBD5E1" strokeWidth="0.5"/>
+        <rect x="34" y="32" width="10" height="8" rx="2" fill="url(#cardGradient)" stroke="#CBD5E1" strokeWidth="0.5"/>
+        <rect x="20" y="44" width="10" height="8" rx="2" fill="url(#cardGradient)" stroke="#CBD5E1" strokeWidth="0.5"/>
+        <rect x="34" y="44" width="10" height="8" rx="2" fill="url(#accentGradient)" stroke="#CBD5E1" strokeWidth="0.5"/>
+        <path d="M25 28v4" stroke="url(#accentGradient)" strokeDasharray="2 2"/>
+        <path d="M39 30v2" stroke="#CBD5E1" strokeDasharray="2 2"/>
+        <path d="M39 42v2" stroke="#CBD5E1" strokeDasharray="2 2"/>
+        <circle cx="24" cy="39" r="1.5" fill="url(#accentGradient)"/>
+        <circle cx="38" cy="24" r="1.5" fill="url(#accentGradient)"/>
+      </g>
+    </svg>
+  );
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border dark:border-gray-700">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-semibold text-gray-900 dark:text-white">
-            Get Started
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+      <Card className="w-full max-w-md space-y-8 bg-white dark:bg-gray-800 p-8">
+        <CardHeader className="space-y-1">
+          <div className="flex justify-center mb-6">
+            <Logo />
+          </div>
+          <CardTitle className="text-3xl font-bold tracking-tight text-center">
+            Create an Account
+          </CardTitle>
+          <CardDescription className="text-center">
             Already have an account?{' '}
-            <Link to="/login" className="font-medium text-blue-500 hover:text-blue-600">
+            <Link to="/login" className="font-medium text-primary hover:text-primary/90">
               Sign in
             </Link>
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaUser className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                name="name"
-                type="text"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                className="appearance-none relative block w-full pl-10 px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 sm:text-sm"
-                placeholder="Full name"
-              />
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaEnvelope className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="appearance-none relative block w-full pl-10 px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 sm:text-sm"
-                placeholder="Email address"
-              />
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaLock className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="appearance-none relative block w-full pl-10 px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 sm:text-sm"
-                placeholder="Password"
-              />
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaLock className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                name="confirmPassword"
-                type="password"
-                required
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="appearance-none relative block w-full pl-10 px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 sm:text-sm"
-                placeholder="Confirm password"
-              />
-            </div>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Full Name</Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaUser className="h-5 w-5 text-gray-400" />
+                </div>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="pl-10"
+                  placeholder="Full name"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaEnvelope className="h-5 w-5 text-gray-400" />
+                </div>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="pl-10"
+                  placeholder="Email address"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaLock className="h-5 w-5 text-gray-400" />
+                </div>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="pl-10"
+                  placeholder="Create a password"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaLock className="h-5 w-5 text-gray-400" />
+                </div>
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="pl-10"
+                  placeholder="Confirm your password"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                   <FaUserShield className="h-5 w-5 text-gray-400" />
                 </div>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="appearance-none relative block w-full pl-10 px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 sm:text-sm"
-                >
-                  <option value="member">Team Member</option>
-                  <option value="admin">Admin</option>
-                </select>
+                <Select value={formData.role} onValueChange={handleRoleChange}>
+                  <SelectTrigger id="role" className="w-full pl-10">
+                    <SelectValue placeholder="Select your role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="member">Team Member</SelectItem>
+                    <SelectItem value="leader">Team Leader</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <button
+            <Button
               type="submit"
+              className="w-full mt-6"
               disabled={loading}
-               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
-              {loading ? (
-                  <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                ) : (
-                'Create Account'
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
+              {loading ? "Creating account..." : "Create Account"}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="text-center text-sm text-muted-foreground">
+          <p className="text-center w-full">
+            By creating an account, you agree to our{' '}
+            <Link to="/terms" className="font-medium text-primary hover:text-primary/90">
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link to="/privacy" className="font-medium text-primary hover:text-primary/90">
+              Privacy Policy
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   );
 };

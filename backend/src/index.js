@@ -12,6 +12,7 @@ import userRoutes from './routes/users.js';
 import projectRoutes from './routes/projectRoutes.js';
 import issueRoutes from './routes/issueRoutes.js';
 import analyticsRoutes from './routes/analytics.js';
+import colors from 'colors';
 
 dotenv.config();
 
@@ -38,6 +39,11 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api', analyticsRoutes);
 
 const PORT = process.env.PORT || 5000;
+
 httpServer.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(
+    colors.bgMagenta.white(
+      `🌟 [${new Date().toLocaleTimeString()}] Server running on port ${PORT} 🚀`
+    )
+  );
 });
