@@ -10,7 +10,8 @@ import {
     Tooltip,
     Legend,
     ArcElement,
-    RadialLinearScale
+    RadialLinearScale,
+    Filler
 } from 'chart.js';
 import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
 
@@ -25,7 +26,8 @@ ChartJS.register(
     Tooltip,
     Legend,
     ArcElement,
-    RadialLinearScale
+    RadialLinearScale,
+    Filler
 );
 
 const DashboardCharts = ({ boards, isDark }) => {

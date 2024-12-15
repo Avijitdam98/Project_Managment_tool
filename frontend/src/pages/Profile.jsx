@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchBoards } from '../store/boardSlice';
-import { FaUser, FaEnvelope, FaClock } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaClock, FaClipboard, FaCog, FaLock, FaBell } from 'react-icons/fa';
 import BoardCard from '../components/BoardCard';
+import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Avatar, AvatarFallback } from "../components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Badge } from "../components/ui/badge";
 
 const Profile = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { boards, loading } = useSelector((state) => state.boards);
-  const [activeTab, setActiveTab] = useState('boards'); // 'boards' or 'settings'
+  const [activeTab, setActiveTab] = useState('boards');
 
   useEffect(() => {
     dispatch(fetchBoards());
@@ -25,120 +30,101 @@ const Profile = () => {
   if (!user) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="text-xl">Please log in to view your profile.</div>
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-xl text-center">Please log in to view your profile.</div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Profile Header */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center">
-              <span className="text-3xl text-white uppercase">
-                {user.name ? user.name[0] : 'U'}
-              </span>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">{user.name}</h1>
-              <div className="flex items-center text-gray-600 mt-1">
-                <FaEnvelope className="mr-2" />
-                <span>{user.email}</span>
+      <Card className="mb-8">
+        <CardContent className="pt-6">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-20 w-20">
+                <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                  {user.name ? user.name[0].toUpperCase() : 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-2xl font-bold">{user.name}</h1>
+                <div className="flex items-center text-muted-foreground mt-1">
+                  <FaEnvelope className="mr-2" />
+                  <span>{user.email}</span>
+                </div>
+                <div className="flex items-center text-muted-foreground mt-1">
+                  <FaClock className="mr-2" />
+                  <span>Joined {formatDate(user.createdAt)}</span>
+                </div>
               </div>
-              <div className="flex items-center text-gray-600 mt-1">
-                <FaClock className="mr-2" />
-                <span>Member since {formatDate(user.createdAt)}</span>
-              </div>
             </div>
+            <Badge variant="outline" className="text-sm">
+              {user.role}
+            </Badge>
           </div>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            Edit Profile
-          </button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Tabs */}
-      <div className="flex border-b mb-6">
-        <button
-          className={`px-4 py-2 font-medium ${
-            activeTab === 'boards'
-              ? 'border-b-2 border-blue-500 text-blue-500'
-              : 'text-gray-500'
-          }`}
-          onClick={() => setActiveTab('boards')}
-        >
-          My Boards
-        </button>
-        <button
-          className={`px-4 py-2 font-medium ${
-            activeTab === 'settings'
-              ? 'border-b-2 border-blue-500 text-blue-500'
-              : 'text-gray-500'
-          }`}
-          onClick={() => setActiveTab('settings')}
-        >
-          Settings
-        </button>
-      </div>
+      <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="boards" className="flex items-center space-x-2">
+            <FaClipboard className="h-4 w-4" />
+            <span>My Boards</span>
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center space-x-2">
+            <FaCog className="h-4 w-4" />
+            <span>Settings</span>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Content */}
-      {activeTab === 'boards' ? (
-        <div>
-          <h2 className="text-xl font-semibold mb-4">My Boards</h2>
-          {loading ? (
-            <div className="text-center py-4">Loading boards...</div>
-          ) : boards.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {boards.map((board) => (
-                <BoardCard key={board._id} board={board} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-4 text-gray-500">
-              You haven't created any boards yet.
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Profile Settings</h2>
-          <form className="space-y-4">
-            <div>
-              <label className="block text-gray-700 mb-2">Name</label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded"
-                value={user.name}
-                readOnly
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 mb-2">Email</label>
-              <input
-                type="email"
-                className="w-full p-2 border rounded"
-                value={user.email}
-                readOnly
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700 mb-2">Theme</label>
-              <select className="w-full p-2 border rounded">
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Save Changes
-            </button>
-          </form>
-        </div>
-      )}
+        <TabsContent value="boards">
+          <Card>
+            <CardHeader>
+              <CardTitle>My Boards</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-4">Loading boards...</div>
+              ) : boards.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {boards.map((board) => (
+                    <BoardCard key={board._id} board={board} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-muted-foreground">
+                  No boards found. Create a new board to get started!
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <Button variant="outline" className="w-full justify-start">
+                  <FaUser className="mr-2 h-4 w-4" /> Edit Profile
+                </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <FaLock className="mr-2 h-4 w-4" /> Change Password
+                </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <FaBell className="mr-2 h-4 w-4" /> Notification Settings
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
