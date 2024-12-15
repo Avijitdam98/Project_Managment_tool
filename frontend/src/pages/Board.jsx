@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { fetchBoardDetails, moveTask, addTask } from '../store/boardSlice';
 import TaskCard from '../components/TaskCard';
 import TaskForm from '../components/TaskForm';
-import { FaPlus } from 'react-icons/fa';
+import { FaPlus, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 const Board = () => {
     const { boardId } = useParams();
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const { currentBoard: board, loading, error } = useSelector((state) => state.boards);
     const [showTaskForm, setShowTaskForm] = useState(false);
@@ -77,6 +78,12 @@ const Board = () => {
                         <p className="mt-1 text-gray-600 dark:text-gray-400">{board.description}</p>
                       )}
                    </div>
+                   <button
+                     onClick={() => navigate(`/edit-board/${boardId}`)}
+                     className="p-2 text-gray-600 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md transition-colors duration-200"
+                   >
+                     <FaEdit className="w-5 h-5" />
+                   </button>
                 </div>
 
 

@@ -1,15 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaSave, FaTrash, FaUserPlus, FaTimes } from 'react-icons/fa';
+import { FaSave, FaTrash, FaUserPlus, FaTimes, FaCog, FaUsers } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Textarea } from "../components/ui/textarea";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../components/ui/card";
+import { Separator } from "../components/ui/separator";
+import { Badge } from "../components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 
 const ProjectSettings = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -87,133 +106,156 @@ const ProjectSettings = () => {
   };
 
   const handleDeleteProject = async () => {
-    if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-      try {
-        await axios.delete(`/api/projects/${projectId}`);
-        toast.success('Project deleted successfully');
-        navigate('/');
-      } catch (error) {
-        toast.error('Failed to delete project');
-        console.error('Error deleting project:', error);
-      }
+    try {
+      await axios.delete(`/api/projects/${projectId}`);
+      toast.success('Project deleted successfully');
+      navigate('/dashboard');
+    } catch (error) {
+      toast.error('Failed to delete project');
+      console.error('Error deleting project:', error);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-xl">Loading...</div>
       </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="container mx-auto px-4 py-8"
-    >
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white dark:bg-surface-800 rounded-lg shadow-lg p-6 mb-6">
-          <h1 className="text-2xl font-bold mb-6">Project Settings</h1>
-
-          {/* Project Details Form */}
-          <form onSubmit={handleSubmit} className="mb-8">
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Project Name</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-600 dark:bg-surface-700"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Description</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-600 dark:bg-surface-700"
-                rows="4"
-              />
-            </div>
-            <button
-              type="submit"
-              className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-            >
-              <FaSave className="mr-2" />
-              Save Changes
-            </button>
-          </form>
-
-          {/* Team Management */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4">Team Members</h2>
-            <form onSubmit={handleAddMember} className="mb-4">
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  name="newMemberEmail"
-                  value={formData.newMemberEmail}
-                  onChange={handleInputChange}
-                  placeholder="Enter email address"
-                  className="flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-primary-600 dark:bg-surface-700"
-                />
-                <button
-                  type="submit"
-                  className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-                >
-                  <FaUserPlus className="mr-2" />
-                  Add Member
-                </button>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center space-x-2">
+              <FaCog className="w-6 h-6 text-primary" />
+              <div>
+                <CardTitle>Project Settings</CardTitle>
+                <CardDescription>Manage your project settings and team members</CardDescription>
               </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Project Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className="min-h-[100px]"
+                />
+              </div>
+              <Button type="submit" className="flex items-center space-x-2">
+                <FaSave className="w-4 h-4" />
+                <span>Save Changes</span>
+              </Button>
             </form>
 
-            <div className="space-y-2">
-              {project?.members?.map((member) => (
-                <div
-                  key={member._id}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-surface-700 rounded-lg"
-                >
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white">
-                      {member.name?.[0]?.toUpperCase()}
-                    </div>
-                    <div className="ml-3">
-                      <p className="font-semibold">{member.name}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{member.email}</p>
-                    </div>
-                  </div>
-                  {member._id !== project.owner && (
-                    <button
-                      onClick={() => handleRemoveMember(member._id)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <FaTimes />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+            <Separator className="my-6" />
 
-          {/* Danger Zone */}
-          <div className="border-t pt-6">
-            <h2 className="text-xl font-bold mb-4 text-red-600">Danger Zone</h2>
-            <button
-              onClick={handleDeleteProject}
-              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-            >
-              <FaTrash className="mr-2" />
-              Delete Project
-            </button>
-          </div>
-        </div>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <FaUsers className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold">Team Members</h3>
+              </div>
+              
+              <form onSubmit={handleAddMember} className="flex space-x-2">
+                <div className="flex-grow">
+                  <Input
+                    name="newMemberEmail"
+                    value={formData.newMemberEmail}
+                    onChange={handleInputChange}
+                    placeholder="Enter email address"
+                    type="email"
+                    required
+                  />
+                </div>
+                <Button type="submit" className="flex items-center space-x-2">
+                  <FaUserPlus className="w-4 h-4" />
+                  <span>Add</span>
+                </Button>
+              </form>
+
+              <div className="space-y-2">
+                {project?.members?.map((member) => (
+                  <div
+                    key={member._id}
+                    className="flex items-center justify-between p-3 bg-secondary/10 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span>{member.email}</span>
+                      <Badge variant="outline">{member.role}</Badge>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveMember(member._id)}
+                      className="text-destructive hover:text-destructive/90"
+                    >
+                      <FaTimes className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Separator className="my-6" />
+
+            <div className="space-y-4">
+              <Alert variant="destructive">
+                <AlertTitle className="text-destructive">Danger Zone</AlertTitle>
+                <AlertDescription>
+                  Once you delete a project, there is no going back. Please be certain.
+                </AlertDescription>
+              </Alert>
+              <Button
+                variant="destructive"
+                onClick={() => setShowDeleteDialog(true)}
+                className="flex items-center space-x-2"
+              >
+                <FaTrash className="w-4 h-4" />
+                <span>Delete Project</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </motion.div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your project
+              and remove all associated data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteProject}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Project
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 };
 
