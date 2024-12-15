@@ -2,11 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
-import { fetchBoardDetails, moveTask, addTask } from '../store/boardSlice';
+import { fetchBoardDetails, moveTask, addTask, deleteBoard } from '../store/boardSlice';
 import TaskCard from '../components/TaskCard';
 import TaskForm from '../components/TaskForm';
-import { FaPlus, FaEdit } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 
 const Board = () => {
     const { boardId } = useParams();
@@ -15,6 +25,7 @@ const Board = () => {
     const { currentBoard: board, loading, error } = useSelector((state) => state.boards);
     const [showTaskForm, setShowTaskForm] = useState(false);
     const [activeColumn, setActiveColumn] = useState(null);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     useEffect(() => {
         if (boardId) {
@@ -39,6 +50,16 @@ const Board = () => {
             toast.success('Task moved successfully');
         } catch (error) {
             toast.error('Failed to move task');
+        }
+    };
+
+    const handleDeleteBoard = async () => {
+        try {
+            await dispatch(deleteBoard(boardId)).unwrap();
+            toast.success('Board deleted successfully');
+            navigate('/dashboard');
+        } catch (error) {
+            toast.error('Failed to delete board');
         }
     };
 
@@ -78,12 +99,40 @@ const Board = () => {
                         <p className="mt-1 text-gray-600 dark:text-gray-400">{board.description}</p>
                       )}
                    </div>
-                   <button
-                     onClick={() => navigate(`/edit-board/${boardId}`)}
-                     className="p-2 text-gray-600 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md transition-colors duration-200"
-                   >
-                     <FaEdit className="w-5 h-5" />
-                   </button>
+                   <div className="flex items-center space-x-2">
+                     <button
+                       onClick={() => navigate(`/edit-board/${boardId}`)}
+                       className="p-2 text-gray-600 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md transition-colors duration-200"
+                     >
+                       <FaEdit className="w-5 h-5" />
+                     </button>
+                     <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                       <button
+                         onClick={() => setShowDeleteDialog(true)}
+                         className="p-2 text-gray-600 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 focus:outline-none focus:ring-2 focus:ring-red-500 rounded-md transition-colors duration-200"
+                       >
+                         <FaTrash className="w-5 h-5" />
+                       </button>
+                       <AlertDialogContent>
+                         <AlertDialogHeader>
+                           <AlertDialogTitle>Delete Board</AlertDialogTitle>
+                           <AlertDialogDescription>
+                             Are you sure you want to delete this board? This action cannot be undone.
+                             All tasks and columns within this board will be permanently deleted.
+                           </AlertDialogDescription>
+                         </AlertDialogHeader>
+                         <AlertDialogFooter>
+                           <AlertDialogCancel>Cancel</AlertDialogCancel>
+                           <AlertDialogAction
+                             onClick={handleDeleteBoard}
+                             className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
+                           >
+                             Delete
+                           </AlertDialogAction>
+                         </AlertDialogFooter>
+                       </AlertDialogContent>
+                     </AlertDialog>
+                   </div>
                 </div>
 
 
