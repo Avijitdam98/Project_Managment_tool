@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice';
 import { setSearchQuery } from '../store/boardSlice';
+import { motion } from 'framer-motion';
 import {
   FaHome,
   FaTasks,
@@ -113,20 +114,59 @@ const Navbar = () => {
                     : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                 }`}
               >
-                <FaHome />
-                <span>Home</span>
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  <FaHome className="text-xl" />
+                </motion.div>
+                <motion.span
+                  whileHover={{ y: -2 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  Home
+                </motion.span>
               </Link>
-              <Link
-                to="/dashboard"
-                className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-colors ${
-                  location.pathname === '/dashboard'
-                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900 dark:text-blue-300'
-                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                }`}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400 }}
               >
-                <FaTasks />
-                <span>Boards</span>
-              </Link>
+                <Link
+                  to="/dashboard"
+                  className={`relative flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300 ${
+                    location.pathname === '/dashboard'
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg dark:from-blue-600 dark:to-blue-700'
+                      : 'text-gray-600 hover:bg-blue-50 dark:text-gray-300 dark:hover:bg-blue-900/30'
+                  } overflow-hidden group`}
+                >
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                    initial={false}
+                    transition={{ duration: 0.3 }}
+                  />
+                  <motion.div
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.5, ease: "easeInOut" }}
+                  >
+                    <FaTasks className="text-xl" />
+                  </motion.div>
+                  <motion.span
+                    initial={{ x: 0 }}
+                    whileHover={{ x: 2 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className="font-medium"
+                  >
+                    Boards
+                  </motion.span>
+                  <motion.div
+                    className="absolute bottom-0 left-0 h-0.5 bg-blue-500"
+                    initial={{ width: "0%" }}
+                    whileHover={{ width: "100%" }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </Link>
+              </motion.div>
             </div>
           </div>
 

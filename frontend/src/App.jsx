@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { ToastContainer } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -53,6 +53,7 @@ const ThemedToastContainer = () => {
 
 const AppContent = () => {
   const { darkMode } = useTheme();
+  const location = useLocation();
   
   return (
     <div className="relative min-h-screen">
@@ -76,7 +77,7 @@ const AppContent = () => {
         <Navbar />
 
         {/* Main Content Area */}
-        <main className="flex-1 container mx-auto px-6 sm:px-8 lg:px-12 py-8 space-y-8">
+        <main className="flex-1 container mx-auto px-6 sm:px-8 lg:px-12 py-8 mt-16 bg-background">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
