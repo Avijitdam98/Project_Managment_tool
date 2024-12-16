@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
 const taskSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String },
+  title: { type: String, required: true, trim: true },
+  description: { type: String, trim: true },
   assignee: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   board: { type: mongoose.Schema.Types.ObjectId, ref: 'Board', required: true },
@@ -23,7 +23,17 @@ const taskSchema = new mongoose.Schema({
     completed: { type: Boolean, default: false }
   }],
   attachments: [String],
-  dependencies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
+  dependencies: [{
+    task: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Task'
+    },
+    type: {
+      type: String,
+      enum: ['blocks', 'blocked-by', 'relates-to'],
+      required: true
+    }
+  }],
   status: { 
     type: String, 
     enum: ['to-do', 'in-progress', 'done'], 
@@ -40,6 +50,7 @@ const taskSchema = new mongoose.Schema({
 
 taskSchema.index({ board: 1, column: 1 });
 taskSchema.index({ assignee: 1, status: 1 });
+taskSchema.index({ 'dependencies.task': 1 });
 
 taskSchema.pre('save', function(next) {
   if (typeof this.column !== 'number' || this.column < 0) {

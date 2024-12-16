@@ -134,6 +134,34 @@ router.get('/:boardId', auth, async (req, res) => {
   }
 });
 
+// Get all tasks for a specific board
+router.get('/:boardId/tasks', auth, async (req, res) => {
+  try {
+    const { boardId } = req.params;
+    
+    // Verify board exists and user has access
+    const board = await Board.findOne({
+      _id: boardId,
+      'members.user': req.user._id
+    });
+
+    if (!board) {
+      return res.status(404).json({ error: 'Board not found or access denied' });
+    }
+
+    // Fetch all tasks for the board
+    const tasks = await Task.find({ board: boardId })
+      .populate('assignee', 'name email avatar')
+      .populate('createdBy', 'name email avatar')
+      .populate('dependencies.task', 'title status');
+
+    res.json(tasks);
+  } catch (error) {
+    console.error('Error fetching board tasks:', error);
+    res.status(500).json({ error: 'Failed to fetch tasks' });
+  }
+});
+
 // Add a new column
 router.post('/:boardId/columns', auth, async (req, res) => {
   try {
