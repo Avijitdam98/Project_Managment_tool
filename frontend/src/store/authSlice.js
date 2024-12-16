@@ -49,7 +49,7 @@ export const register = createAsyncThunk(
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: null,
+    user: JSON.parse(localStorage.getItem('user')) || null,
     loading: false,
     error: null,
   },
@@ -58,6 +58,7 @@ const authSlice = createSlice({
       state.user = null;
       state.error = null;
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       // Disconnect WebSocket
       disconnectSocket();
     },
@@ -74,6 +75,7 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
+        localStorage.setItem('user', JSON.stringify(action.payload.user));
         state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
@@ -88,6 +90,7 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
+        localStorage.setItem('user', JSON.stringify(action.payload.user));
         state.error = null;
       })
       .addCase(register.rejected, (state, action) => {
