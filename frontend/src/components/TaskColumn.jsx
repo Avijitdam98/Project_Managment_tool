@@ -1,5 +1,5 @@
 import { Droppable } from '@hello-pangea/dnd';
-import Task from './Task';
+import TaskCard from './TaskCard';
 import PropTypes from 'prop-types';
 
 const TaskColumn = ({ column, index }) => {
@@ -28,11 +28,10 @@ const TaskColumn = ({ column, index }) => {
             `}
           >
             {column.tasks.map((task, taskIndex) => (
-              <Task
+              <TaskCard
                 key={task._id}
                 task={task}
                 index={taskIndex}
-                columnId={index}
               />
             ))}
             {provided.placeholder}

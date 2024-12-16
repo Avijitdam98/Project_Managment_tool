@@ -238,8 +238,22 @@ const boardSlice = createSlice({
       .addCase(addTask.fulfilled, (state, action) => {
         if (state.currentBoard?._id === action.payload.boardId) {
           const column = state.currentBoard.columns.find(col => col._id === action.payload.columnId);
+          if (column && !column.tasks) {
+            column.tasks = [];
+          }
           if (column) {
             column.tasks.push(action.payload.task);
+          }
+          // Also update the board in the boards array
+          const board = state.boards.find(b => b._id === action.payload.boardId);
+          if (board) {
+            const boardColumn = board.columns.find(col => col._id === action.payload.columnId);
+            if (boardColumn && !boardColumn.tasks) {
+              boardColumn.tasks = [];
+            }
+            if (boardColumn) {
+              boardColumn.tasks.push(action.payload.task);
+            }
           }
         }
       })

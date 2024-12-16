@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import { createTask } from '../store/boardSlice';
+import { addTask, fetchBoardDetails } from '../store/boardSlice';
 import { toast } from 'react-toastify';
 
 const CreateTaskModal = ({ boardId, onClose, columns }) => {
@@ -24,14 +24,23 @@ const CreateTaskModal = ({ boardId, onClose, columns }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await dispatch(
-      createTask({ ...formData, boardId })
-    );
-    if (!result.error) {
+    try {
+      const result = await dispatch(
+        addTask({ 
+          boardId, 
+          columnId: formData.status, 
+          taskData: {
+            title: formData.title,
+            description: formData.description,
+          }
+        })
+      ).unwrap();
+      
       toast.success('Task created successfully!');
+      dispatch(fetchBoardDetails(boardId));
       onClose();
-    } else {
-      toast.error(result.payload?.error || 'Failed to create task');
+    } catch (error) {
+      toast.error(error || 'Failed to create task');
     }
   };
 

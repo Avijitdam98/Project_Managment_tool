@@ -25,7 +25,12 @@ const httpServer = createServer(app);
 // Initialize Socket.io
 initSocket(httpServer);
 
-app.use(cors());
+// Configure CORS
+app.use(cors({
+  origin: 'http://localhost:5173', // Your Vite frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes

@@ -93,4 +93,20 @@ router.post('/move', auth, async (req, res) => {
   }
 });
 
+// Delete task endpoint
+router.delete('/:taskId', auth, async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.taskId);
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    await Task.findByIdAndDelete(req.params.taskId);
+    res.json({ message: 'Task deleted successfully', taskId: req.params.taskId });
+  } catch (error) {
+    console.error('Delete task error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 export default router;
