@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { store } from './store/store';
 import App from './App';
 import './index.css';
+import './styles/gantt.css';
 import { ThemeProvider } from "./components/theme-provider";
 import { Toaster } from 'react-hot-toast';
 

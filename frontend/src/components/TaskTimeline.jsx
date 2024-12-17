@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Timeline from '@mui/lab/Timeline';
 import TimelineItem from '@mui/lab/TimelineItem';
 import TimelineSeparator from '@mui/lab/TimelineSeparator';
@@ -6,9 +6,10 @@ import TimelineConnector from '@mui/lab/TimelineConnector';
 import TimelineContent from '@mui/lab/TimelineContent';
 import TimelineDot from '@mui/lab/TimelineDot';
 import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent';
-import { FaCheckCircle, FaClock, FaExclamationCircle, FaCalendarAlt, FaUserClock } from 'react-icons/fa';
+import { FaCheckCircle, FaClock, FaExclamationCircle, FaCalendarAlt, FaUserClock, FaProjectDiagram, FaStream } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
+import GanttChart from './GanttChart';
 
 const TaskTimeline = ({ boards, showDetails = true }) => {
   // Animation variants
@@ -116,6 +117,8 @@ const TaskTimeline = ({ boards, showDetails = true }) => {
     }
   };
 
+  const [viewMode, setViewMode] = useState('timeline'); // 'timeline' or 'gantt'
+
   // Get all tasks from all boards with unique IDs
   const allTasks = boards?.reduce((acc, board) => {
     const boardTasks = board.columns?.reduce((tasks, column) => {
@@ -170,171 +173,205 @@ const TaskTimeline = ({ boards, showDetails = true }) => {
     );
   }
 
+  const processedTasks = allTasks.map(task => ({
+    ...task,
+    startDate: task.startDate || new Date(),
+    dueDate: task.dueDate || new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
+    status: task.columnTitle?.toLowerCase().includes('done') ? 'completed' : 
+           task.columnTitle?.toLowerCase().includes('progress') ? 'inProgress' : 'todo'
+  }));
+
   return (
     <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="relative"
+      className="space-y-6"
     >
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800/30 dark:to-gray-900/30 rounded-xl" />
-      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px] opacity-25" />
-      
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative p-6 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm shadow-xl border border-gray-200/50 dark:border-gray-700/50"
-      >
-        <Timeline position="right" className="px-4">
-          {recentTasks.map((task, index) => (
-            <TimelineItem key={task.uniqueId}>
-              <TimelineOppositeContent className="py-6">
-                <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex flex-col items-end"
-                >
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {format(new Date(task.dueDate), 'MMM d, yyyy')}
-                  </span>
-                  {showDetails && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      className="text-xs text-gray-500 dark:text-gray-500 mt-1"
-                    >
-                      {task.boardTitle}
-                    </motion.span>
-                  )}
-                </motion.div>
-              </TimelineOppositeContent>
-              
-              <TimelineSeparator>
-                <motion.div
-                  variants={dotVariants}
-                  whileHover="hover"
-                >
-                  <TimelineDot 
-                    color={getStatusColor(task.status, task.columnTitle)}
-                    className="timeline-dot cursor-pointer"
-                  >
-                    {task.columnTitle?.toLowerCase().includes('done') ? (
-                      <FaCheckCircle className="h-5 w-5" />
-                    ) : (
-                      <FaClock className="h-5 w-5" />
-                    )}
-                  </TimelineDot>
-                </motion.div>
-                {index < recentTasks.length - 1 && (
-                  <motion.div
-                    initial={{ height: 0 }}
-                    animate={{ height: "auto" }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                  >
-                    <TimelineConnector />
-                  </motion.div>
-                )}
-              </TimelineSeparator>
+      {/* View Toggle */}
+      <div className="flex justify-end space-x-2 mb-4">
+        <button
+          onClick={() => setViewMode('timeline')}
+          className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
+            viewMode === 'timeline'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+          }`}
+        >
+          <FaStream className="w-4 h-4" />
+          <span>Timeline</span>
+        </button>
+        <button
+          onClick={() => setViewMode('gantt')}
+          className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
+            viewMode === 'gantt'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+          }`}
+        >
+          <FaProjectDiagram className="w-4 h-4" />
+          <span>Gantt</span>
+        </button>
+      </div>
 
-              <TimelineContent className="py-6">
-                <motion.div 
-                  variants={cardVariants}
-                  whileHover="hover"
-                  className={`p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ${getCardColor(task.columnTitle)} border border-gray-100 dark:border-gray-700 backdrop-blur-sm relative overflow-hidden`}
-                >
-                  {/* Card Background Pattern */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-gray-800/50 dark:to-transparent pointer-events-none" />
-                  
-                  <div className="relative">
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {task.title}
-                      </h3>
-                      {task.priority && (
+      {viewMode === 'gantt' ? (
+        <GanttChart tasks={processedTasks} />
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative p-6 rounded-xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm shadow-xl border border-gray-200/50 dark:border-gray-700/50"
+        >
+          <Timeline position="right" className="px-4">
+            {recentTasks.map((task, index) => (
+              <TimelineItem key={task.uniqueId}>
+                <TimelineOppositeContent className="py-6">
+                  <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex flex-col items-end"
+                  >
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      {format(new Date(task.dueDate), 'MMM d, yyyy')}
+                    </span>
+                    {showDetails && (
+                      <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-xs text-gray-500 dark:text-gray-500 mt-1"
+                      >
+                        {task.boardTitle}
+                      </motion.span>
+                    )}
+                  </motion.div>
+                </TimelineOppositeContent>
+                
+                <TimelineSeparator>
+                  <motion.div
+                    variants={dotVariants}
+                    whileHover="hover"
+                  >
+                    <TimelineDot 
+                      color={getStatusColor(task.status, task.columnTitle)}
+                      className="timeline-dot cursor-pointer"
+                    >
+                      {task.columnTitle?.toLowerCase().includes('done') ? (
+                        <FaCheckCircle className="h-5 w-5" />
+                      ) : (
+                        <FaClock className="h-5 w-5" />
+                      )}
+                    </TimelineDot>
+                  </motion.div>
+                  {index < recentTasks.length - 1 && (
+                    <motion.div
+                      initial={{ height: 0 }}
+                      animate={{ height: "auto" }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                    >
+                      <TimelineConnector />
+                    </motion.div>
+                  )}
+                </TimelineSeparator>
+
+                <TimelineContent className="py-6">
+                  <motion.div 
+                    variants={cardVariants}
+                    whileHover="hover"
+                    className={`p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ${getCardColor(task.columnTitle)} border border-gray-100 dark:border-gray-700 backdrop-blur-sm relative overflow-hidden`}
+                  >
+                    {/* Card Background Pattern */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-gray-800/50 dark:to-transparent pointer-events-none" />
+                    
+                    <div className="relative">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {task.title}
+                        </h3>
+                        {task.priority && (
+                          <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className={`flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPriorityBadge(task.priority).bg} ${getPriorityBadge(task.priority).text}`}
+                          >
+                            {getPriorityBadge(task.priority).icon}
+                            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                          </motion.div>
+                        )}
+                      </div>
+                      
+                      {showDetails && (
                         <motion.div
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className={`flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPriorityBadge(task.priority).bg} ${getPriorityBadge(task.priority).text}`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                          className="space-y-4"
                         >
-                          {getPriorityBadge(task.priority).icon}
-                          {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                          {task.description && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                              {task.description}
+                            </p>
+                          )}
+                          
+                          <div className="flex flex-wrap gap-3 pt-3">
+                            {/* Column Badge */}
+                            <motion.div
+                              whileHover={{ scale: 1.05 }}
+                              className="flex items-center px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-xs font-medium text-gray-700 dark:text-gray-300"
+                            >
+                              <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: task.color || '#9CA3AF' }} />
+                              {task.columnTitle}
+                            </motion.div>
+                            
+                            {/* Assignee Badge */}
+                            {task.assignee && (
+                              <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                className="flex items-center px-3 py-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-xs font-medium text-blue-800 dark:text-blue-200"
+                              >
+                                <FaUserClock className="mr-1.5 w-3.5 h-3.5" />
+                                {task.assignee.name}
+                              </motion.div>
+                            )}
+                          </div>
+
+                          {/* Checklist Progress if exists */}
+                          {task.checklist && task.checklist.length > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                              className="pt-3"
+                            >
+                              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                <span>Checklist Progress</span>
+                                <span>
+                                  {task.checklist.filter(item => item.completed).length}/{task.checklist.length}
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ 
+                                    width: `${(task.checklist.filter(item => item.completed).length / task.checklist.length) * 100}%` 
+                                  }}
+                                  transition={{ duration: 0.5, delay: 0.4 }}
+                                  className="bg-blue-600 dark:bg-blue-500 h-full rounded-full"
+                                />
+                              </div>
+                            </motion.div>
+                          )}
                         </motion.div>
                       )}
                     </div>
-                    
-                    {showDetails && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="space-y-4"
-                      >
-                        {task.description && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                            {task.description}
-                          </p>
-                        )}
-                        
-                        <div className="flex flex-wrap gap-3 pt-3">
-                          {/* Column Badge */}
-                          <motion.div
-                            whileHover={{ scale: 1.05 }}
-                            className="flex items-center px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-xs font-medium text-gray-700 dark:text-gray-300"
-                          >
-                            <span className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: task.color || '#9CA3AF' }} />
-                            {task.columnTitle}
-                          </motion.div>
-                          
-                          {/* Assignee Badge */}
-                          {task.assignee && (
-                            <motion.div
-                              whileHover={{ scale: 1.05 }}
-                              className="flex items-center px-3 py-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-xs font-medium text-blue-800 dark:text-blue-200"
-                            >
-                              <FaUserClock className="mr-1.5 w-3.5 h-3.5" />
-                              {task.assignee.name}
-                            </motion.div>
-                          )}
-                        </div>
-
-                        {/* Checklist Progress if exists */}
-                        {task.checklist && task.checklist.length > 0 && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="pt-3"
-                          >
-                            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-2">
-                              <span>Checklist Progress</span>
-                              <span>
-                                {task.checklist.filter(item => item.completed).length}/{task.checklist.length}
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ 
-                                  width: `${(task.checklist.filter(item => item.completed).length / task.checklist.length) * 100}%` 
-                                }}
-                                transition={{ duration: 0.5, delay: 0.4 }}
-                                className="bg-blue-600 dark:bg-blue-500 h-full rounded-full"
-                              />
-                            </div>
-                          </motion.div>
-                        )}
-                      </motion.div>
-                    )}
-                  </div>
-                </motion.div>
-              </TimelineContent>
-            </TimelineItem>
-          ))}
-        </Timeline>
-      </motion.div>
+                  </motion.div>
+                </TimelineContent>
+              </TimelineItem>
+            ))}
+          </Timeline>
+        </motion.div>
+      )}
     </motion.div>
   );
 };

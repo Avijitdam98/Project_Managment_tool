@@ -1,0 +1,564 @@
+.gantt-container {
+  position: relative;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--background);
+  color: var(--foreground);
+  height: 100%;
+  min-height: 600px;
+}
+
+/* Task bar styles */
+.gantt_task_line {
+  height: 40px !important;
+  border-radius: 8px;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.completed-task {
+  background: linear-gradient(135deg, rgb(34 197 94 / 0.2), rgb(22 163 74 / 0.2)) !important;
+  border: 1px solid rgb(34 197 94) !important;
+}
+
+.in-progress-task {
+  background: linear-gradient(135deg, rgb(234 179 8 / 0.2), rgb(202 138 4 / 0.2)) !important;
+  border: 1px solid rgb(234 179 8) !important;
+}
+
+.todo-task {
+  background: linear-gradient(135deg, rgb(239 68 68 / 0.2), rgb(220 38 38 / 0.2)) !important;
+  border: 1px solid rgb(239 68 68) !important;
+}
+
+/* Grid and scale styles */
+.gantt_grid_scale,
+.gantt_task_scale {
+  background-color: var(--secondary);
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 14px !important;
+  height: 50px !important;
+  line-height: 50px !important;
+}
+
+.gantt_grid_data .gantt_cell {
+  border-right: 1px solid var(--border);
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+  line-height: 1.5;
+}
+
+.gantt_task_cell {
+  border-right: 1px solid var(--border);
+}
+
+/* Task content styles */
+.task-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  height: 100%;
+  font-size: 14px !important;
+  font-weight: 500;
+}
+
+.task-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 14px !important;
+}
+
+.task-name {
+  font-size: 14px !important;
+  font-weight: 500;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 14px;
+}
+
+/* Progress styles */
+.progress-container {
+  background: var(--accent);
+  border-radius: 12px;
+  padding: 2px;
+  margin: 4px 0;
+  height: 24px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(to right, var(--primary), var(--primary-dark));
+  border-radius: 10px;
+  color: white;
+  font-size: 13px !important;
+  font-weight: 600;
+  text-align: center;
+  line-height: 20px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: width 0.3s ease;
+}
+
+/* Tooltip styles */
+.gantt-tooltip {
+  background: var(--background);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  font-size: 14px !important;
+  border: 1px solid var(--border);
+  max-width: 300px;
+}
+
+.gantt-tooltip strong {
+  color: var(--foreground);
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+  font-size: 15px !important;
+}
+
+.gantt-tooltip p {
+  color: var(--foreground-secondary);
+  margin: 6px 0;
+  font-size: 13px !important;
+  line-height: 1.5;
+}
+
+/* Task link styles */
+.gantt_task_link {
+  stroke: var(--accent);
+  stroke-width: 2px;
+}
+
+.gantt_link_arrow {
+  fill: var(--accent);
+}
+
+/* Dark mode support */
+[data-theme='dark'] .gantt_grid,
+[data-theme='dark'] .gantt_task {
+  background-color: var(--background);
+}
+
+[data-theme='dark'] .gantt_grid_scale,
+[data-theme='dark'] .gantt_task_scale {
+  background-color: var(--secondary);
+  border-color: var(--border);
+}
+
+[data-theme='dark'] .gantt_task_cell {
+  border-color: var(--border);
+}
+
+/* Hover effects */
+.gantt_task_line:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Modern Scale Styles */
+.gantt_grid_scale,
+.gantt_task_scale {
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+  color: #1e293b;
+  font-weight: 600;
+  height: 50px !important;
+  line-height: 50px !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.gantt_grid_scale div,
+.gantt_task_scale div {
+  font-size: 0.875rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+/* Grid and Rows */
+.gantt_grid {
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.gantt_grid_data {
+  background: #ffffff;
+}
+
+.gantt_task_row {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  transition: background-color 0.2s ease;
+}
+
+.gantt_task_row:hover {
+  background-color: rgba(243, 244, 246, 0.8);
+}
+
+/* Task Styles */
+.gantt_task_line {
+  height: 32px !important;
+  border-radius: 8px;
+  border: none !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gantt_task_line:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+.gantt_task_progress {
+  background: linear-gradient(to right, #2563eb, #1d4ed8);
+  border-radius: 8px;
+  height: 100% !important;
+  opacity: 0.9;
+}
+
+/* Task Dependencies */
+.gantt_task_link {
+  stroke: #94a3b8;
+  stroke-width: 1.5px;
+}
+
+.gantt_link_arrow {
+  fill: #94a3b8;
+}
+
+/* Custom Task States */
+.completed-task {
+  background: linear-gradient(135deg, #34d399, #059669) !important;
+}
+
+.behind-schedule {
+  background: linear-gradient(135deg, #f87171, #dc2626) !important;
+}
+
+/* Progress Bar */
+.progress-container {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  padding: 2px;
+  margin: 4px 0;
+}
+
+.progress-bar {
+  background: linear-gradient(to right, #3b82f6, #2563eb);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 20px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Input and Cell Styles */
+.gantt_grid_data .gantt_cell {
+  padding: 8px 12px;
+  font-size: 0.9375rem !important;
+  font-weight: 500;
+  color: #1e293b;
+  line-height: 1.5;
+  background: #ffffff;
+}
+
+.gantt_tree_content {
+  font-weight: 500;
+  padding: 4px 0;
+}
+
+/* Task Grid Headers */
+.gantt_grid_head_cell {
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  letter-spacing: 0.025em;
+  padding: 8px 12px !important;
+  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
+}
+
+/* Grid Lines and Borders */
+.gantt_grid_scale {
+  background: #f8fafc;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.gantt_row {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background-color: #ffffff;
+}
+
+.gantt_row:hover {
+  background-color: #f8fafc;
+}
+
+/* Task Cell Input Fields */
+.gantt_grid input, 
+.gantt_grid select {
+  height: 32px;
+  padding: 4px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  width: calc(100% - 16px);
+  margin: 2px 8px;
+}
+
+.gantt_grid input:focus,
+.gantt_grid select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Progress Bar in Grid */
+.gantt_grid .progress-container {
+  margin: 6px 8px;
+  height: 24px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.gantt_grid .progress-bar {
+  height: 100%;
+  min-width: 24px;
+  padding: 0 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .gantt-container {
+    background: #0f172a;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  .gantt_grid_scale,
+  .gantt_task_scale {
+    background: linear-gradient(to bottom, #1e293b, #0f172a);
+    color: #e2e8f0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .gantt_grid_data {
+    background: #0f172a;
+  }
+
+  .gantt_task_row {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .gantt_task_row:hover {
+    background-color: rgba(30, 41, 59, 0.8);
+  }
+
+  .gantt_task_line {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .gantt_task_progress {
+    background: linear-gradient(to right, #1d4ed8, #1e40af);
+  }
+
+  .gantt_task_link {
+    stroke: #64748b;
+  }
+
+  .gantt_link_arrow {
+    fill: #64748b;
+  }
+
+  .progress-container {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .progress-bar {
+    background: linear-gradient(to right, #2563eb, #1d4ed8);
+  }
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+  .gantt_grid_data .gantt_cell {
+    color: #e2e8f0;
+    background: #1e293b;
+  }
+
+  .gantt_grid_head_cell {
+    color: #94a3b8;
+    background: linear-gradient(to bottom, #1e293b, #0f172a);
+  }
+
+  .gantt_row {
+    background-color: #1e293b;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .gantt_row:hover {
+    background-color: #2d3748;
+  }
+
+  .gantt_grid input,
+  .gantt_grid select {
+    background-color: #2d3748;
+    border-color: #4a5568;
+    color: #e2e8f0;
+  }
+
+  .gantt_grid input:focus,
+  .gantt_grid select:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+  }
+
+  .gantt_grid .progress-container {
+    background: #2d3748;
+  }
+}
+
+/* Scrollbar Styling */
+.gantt_container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.gantt_container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gantt_container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.gantt_container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+@media (prefers-color-scheme: dark) {
+  .gantt_container::-webkit-scrollbar-thumb {
+    background: #475569;
+  }
+
+  .gantt_container::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+}
+
+/* Smooth Animations */
+@keyframes taskAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gantt_task_line {
+  animation: taskAppear 0.3s ease-out;
+}
+
+/* Grid Cell Styling */
+.gantt_grid_data .gantt_cell {
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: #475569;
+  transition: color 0.2s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .gantt_grid_data .gantt_cell {
+    color: #e2e8f0;
+  }
+}
+
+/* Task Content */
+.gantt_task_content {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 32px;
+  padding: 0 8px;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Tree Expand/Collapse Icons */
+.gantt_tree_icon {
+  background-color: #cbd5e1;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  margin-right: 8px;
+}
+
+.gantt_tree_icon.gantt_close,
+.gantt_tree_icon.gantt_open {
+  background-color: #3b82f6;
+  position: relative;
+}
+
+.gantt_tree_icon.gantt_close:hover,
+.gantt_tree_icon.gantt_open:hover {
+  background-color: #2563eb;
+}
+
+/* Task Links */
+.gantt_link_point {
+  background-color: #3b82f6;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Drag and Drop Visual Feedback */
+.gantt_drag_marker {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px dashed #3b82f6;
+}
+
+/* Column Resize Handle */
+.gantt_grid_column_resize_wrap {
+  background-color: #3b82f6;
+  opacity: 0.3;
+}
+
+.gantt_grid_column_resize_wrap:hover {
+  opacity: 0.5;
+}
