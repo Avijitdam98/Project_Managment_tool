@@ -137,8 +137,8 @@
 /* Modern Component Styles */
 @layer components {
   .card {
-    @apply bg-surface-0 rounded-xl shadow-lg border border-surface-200 transition-all duration-200
-    dark:border-surface-700 dark:shadow-surface-800/50;
+    @apply bg-white rounded-xl shadow-lg border border-gray-200 transition-all duration-200
+    dark:bg-gray-800 dark:border-gray-700 dark:shadow-gray-800/50;
   }
 
   .btn {
@@ -152,9 +152,9 @@
   }
 
   .input {
-    @apply bg-surface-0 border border-surface-200 rounded-lg px-4 py-2
+    @apply bg-white border border-gray-200 rounded-lg px-4 py-2
     focus:ring-2 focus:ring-primary-500 focus:border-transparent
-    dark:border-surface-600 dark:focus:ring-primary-400
+    dark:border-gray-600 dark:focus:ring-primary-400
     transition-all duration-200;
   }
 }
