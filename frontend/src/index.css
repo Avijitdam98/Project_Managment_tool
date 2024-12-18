@@ -147,14 +147,14 @@
   }
 
   .btn-primary {
-    @apply bg-primary-500 text-white hover:bg-primary-600
-    dark:bg-primary-400 dark:hover:bg-primary-300;
+    @apply bg-blue-500 text-white hover:bg-blue-600
+    dark:bg-blue-400 dark:hover:bg-blue-300;
   }
 
   .input {
     @apply bg-white border border-gray-200 rounded-lg px-4 py-2
-    focus:ring-2 focus:ring-primary-500 focus:border-transparent
-    dark:border-gray-600 dark:focus:ring-primary-400
+    focus:ring-2 focus:ring-blue-500 focus:border-transparent
+    dark:border-gray-600 dark:focus:ring-blue-400
     transition-all duration-200;
   }
 }
