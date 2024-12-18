@@ -8,6 +8,7 @@ node_modules/
 
 # Production
 /frontend/build
+/frontend/dist
 /backend/dist
 
 # Environment variables
@@ -43,3 +44,34 @@ coverage
 *.swo
 .DS_Store
 Thumbs.db
+
+# Docker
+.docker/
+docker-compose.override.yml
+*.dockerfile.dev
+
+# Nginx
+nginx.conf
+nginx/*.conf
+nginx/logs/
+nginx/*.pid
+nginx/cache/
+
+# Misc
+*.cache
+.temp
+.tmp
+dist
+dist-ssr
+*.local
+.env.*
+
+# Build artifacts
+build/
+out/
+.next/
+
+# System Files
+.DS_Store
+Thumbs.db
+desktop.ini
