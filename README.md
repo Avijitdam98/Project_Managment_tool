@@ -160,7 +160,6 @@ We welcome contributions! Please follow these steps:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and development process.
 
 ## 📝 Documentation
 
@@ -177,17 +176,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Avijit Dam**
 - GitHub: [@Avijitdam98](https://github.com/Avijitdam98)
-- LinkedIn: [Connect with me](https://linkedin.com/in/yourusername)
 
-## 🙏 Acknowledgments
-
-- Thanks to all contributors who have helped shape this project
-- Special thanks to the MERN stack community for their excellent documentation
-- Material-UI team for their comprehensive component library
 
 ## 📞 Support
 
-For support, email support@yourproject.com or join our Discord channel.
+For support, email avijitdam003@gmail.com
 
 ---
 Built with ❤️ by Avijit Dam
